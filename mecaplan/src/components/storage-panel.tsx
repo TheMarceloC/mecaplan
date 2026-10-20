@@ -3,6 +3,8 @@ import { useState, useEffect, type FormEvent } from "react";
 import { Cloud, Link2, Upload, ExternalLink, Check } from "lucide-react";
 import { type Project, type PublicUser } from "@/lib/model";
 import { control } from "@/lib/control";
+import { byCode } from "@/lib/codes";
+import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
 import { can } from "@/server/auth/permissions";
 import { useUploadLimits } from "./use-upload-limits";
 type Status = {
@@ -31,6 +33,14 @@ export function StoragePanel({
     [notice, setNotice] = useState("");
   const admin = user.globalRole === "superuser",
     c = control(p);
+  const activityOptions = p.activities
+    .filter((a) => !a.deletedAt)
+    .sort(byCode)
+    .map((a) => (
+      <option key={a.id} value={a.id}>
+        {a.code} · {a.title}
+      </option>
+    ));
   async function load() {
     const r = await fetch("/api/onedrive", { cache: "no-store" });
     if (r.ok) setState(await r.json());
@@ -231,13 +241,7 @@ export function StoragePanel({
               Actividad relacionada
               <select name="activityId">
                 <option value="">Documento del proyecto</option>
-                {p.activities
-                  .filter((a) => !a.deletedAt)
-                  .map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.title}
-                    </option>
-                  ))}
+                {activityOptions}
               </select>
             </label>
             <button className="primary" disabled={busy}>
@@ -255,38 +259,41 @@ export function StoragePanel({
             <Upload size={20} />
             Subir directamente a OneDrive
           </h2>
+          {!state?.connected && (
+            <p className="form-note upload-blocked" role="note">
+              La subida se activa cuando un administrador conecte la cuenta
+              institucional. Mientras tanto, sube el archivo a OneDrive y asocia
+              su enlace en el formulario de al lado.
+            </p>
+          )}
           <form onSubmit={(e) => save(e, true)}>
-            <label>
-              Archivo · hasta {limits.documentBytes / 1024 / 1024} MB
-              <input
-                type="file"
-                name="file"
-                onChange={() => setOperationId(crypto.randomUUID())}
-                required
-                disabled={!state?.connected}
-              />
-            </label>
-            <label>
-              Actividad relacionada
-              <select name="activityId">
-                <option value="">Documento del proyecto</option>
-                {p.activities
-                  .filter((a) => !a.deletedAt)
-                  .map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.title}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <button className="primary" disabled={busy || !state?.connected}>
-              <Upload size={15} />
-              Subir a OneDrive
-            </button>
+            <fieldset className="plain-fieldset" disabled={!state?.connected}>
+              <label>
+                Archivo · hasta {limits.documentBytes / 1024 / 1024} MB
+                <input
+                  type="file"
+                  name="file"
+                  accept={uploadAccept}
+                  onChange={() => setOperationId(crypto.randomUUID())}
+                  required
+                />
+              </label>
+              <label>
+                Actividad relacionada
+                <select name="activityId">
+                  <option value="">Documento del proyecto</option>
+                  {activityOptions}
+                </select>
+              </label>
+              <button className="primary" disabled={busy}>
+                <Upload size={15} />
+                Subir a OneDrive
+              </button>
+            </fieldset>
           </form>
           <p className="form-note">
-            PDF, imágenes, XLSX y texto/STEP/STL ASCII. El archivo se transfiere
-            a OneDrive y se verifica; no se guarda como adjunto local nuevo.
+            {uploadTypesLabel}. El archivo se transfiere a OneDrive y se
+            verifica; no se guarda como adjunto local nuevo.
           </p>
         </section>
       </div>

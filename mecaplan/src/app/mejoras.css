@@ -1,0 +1,172 @@
+/* Mejoras de interfaz: leyendas, orden de tablas, RACI, menú y anchos intermedios. */
+
+/* Menú lateral: grupo plegable "Planificación y control". */
+.nav-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 24px);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: #6b7488;
+  cursor: pointer;
+  text-align: left;
+}
+.nav-group-toggle svg {
+  transition: transform 0.15s ease;
+}
+.nav-group-toggle[aria-expanded="false"] svg {
+  transform: rotate(-90deg);
+}
+.nav-group-toggle:focus-visible,
+.sort-header:focus-visible {
+  outline: 2px solid #0f49b6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* La tarjeta decorativa empujaba Administración y la cuenta fuera de pantalla. */
+@media (max-height: 900px) {
+  .help-card {
+    display: none;
+  }
+}
+
+/* Leyenda del borde rojo de la ruta crítica. */
+.critical-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 18px 12px;
+  font-size: 11px;
+  color: #6b7488;
+}
+.critical-legend i {
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: #d63b47;
+  flex-shrink: 0;
+}
+
+/* Encabezados de tabla que ordenan. */
+.sort-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.sort-header:hover {
+  color: #05065c;
+}
+.pending-note {
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* Fecha y responsable debajo del nombre cuando la tabla oculta esas columnas. */
+.mobile-meta {
+  display: none;
+}
+@media (max-width: 700px) {
+  .activity-table .mobile-meta {
+    display: block;
+    font-size: 10px;
+    color: #6b7488;
+    font-weight: 400;
+  }
+}
+
+/* Laptops: la tabla dejaba de caber y cortaba la columna Entrega. El equipo
+   ya se lee en el prefijo del código, así que se oculta esa columna. */
+@media (min-width: 701px) and (max-width: 1200px) {
+  .activity-table {
+    min-width: 0;
+  }
+  .activity-table th:nth-child(3),
+  .activity-table td:nth-child(3) {
+    display: none;
+  }
+  .activity-table td:nth-child(2) {
+    white-space: normal;
+  }
+}
+
+/* Tablero: las columnas pasan a otra fila en lugar de esconderse a la derecha. */
+.kanban {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+/* Gantt: alto limitado para que la barra horizontal quede siempre a la vista. */
+.gantt-inner {
+  max-height: 70vh;
+}
+.gantt-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #fff;
+}
+.gantt-row-conflict {
+  background: #fff7ed;
+}
+.gantt-conflict-note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #c2410c;
+  font-weight: 600;
+}
+.gantt-conflicts {
+  margin-bottom: 14px;
+}
+
+/* RACI: buscador y personas agrupadas por equipo. */
+.raci-search {
+  margin-top: 4px;
+}
+.raci-team + .raci-team {
+  margin-top: 8px;
+}
+.raci-team-name {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7488;
+  margin-bottom: 4px;
+}
+
+/* Subida a OneDrive sin conexión: se explica por qué el formulario está inactivo. */
+.upload-blocked {
+  background: #fff5df;
+  color: #8b5f0b;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.plain-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+.plain-fieldset:disabled {
+  opacity: 0.6;
+}

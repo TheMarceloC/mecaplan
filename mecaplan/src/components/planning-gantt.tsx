@@ -1,6 +1,12 @@
 "use client";
+import { TriangleAlert } from "lucide-react";
 import { type Activity, type Project } from "@/lib/model";
-import { control, planning } from "@/lib/control";
+import {
+  control,
+  planning,
+  scheduledCriticalIds,
+  dependencyConflicts,
+} from "@/lib/control";
 import { workingDayDistance } from "@/lib/cpm";
 
 export function PlanningGantt({
@@ -14,8 +20,12 @@ export function PlanningGantt({
 }) {
   const c = control(p),
     plan = planning(p),
+    critical = scheduledCriticalIds(p),
+    conflicts = dependencyConflicts(p),
     baseline = c.baselines.at(-1),
     days = c.workingDays;
+  const code = (id: string) =>
+    p.activities.find((t) => t.id === id)?.code ?? id;
   const dates = rows.flatMap((a) => [a.end, a.actualEnd ?? a.end]);
   const weeks = Math.max(
     p.weeks,
@@ -38,6 +48,22 @@ export function PlanningGantt({
       p.members.find((m) => m.id === id)?.name ?? "Sin asignar";
   return (
     <section className="panel phase-gantt">
+      {conflicts.length > 0 && (
+        <div className="phase-warning gantt-conflicts" role="status">
+          <TriangleAlert size={18} />
+          <span>
+            <strong>
+              {conflicts.length}{" "}
+              {conflicts.length === 1
+                ? "dependencia no se cumple"
+                : "dependencias no se cumplen"}{" "}
+              con las fechas actuales.
+            </strong>{" "}
+            Una actividad empieza antes de que termine la actividad de la que
+            depende. Revisa las filas marcadas o ajusta las fechas.
+          </span>
+        </div>
+      )}
       <div className="gantt-inner">
         <div
           className="gantt-content"
@@ -66,9 +92,16 @@ export function PlanningGantt({
           </div>
           {rows.map((a) => {
             const r = plan.items.find((r) => r.id === a.id),
-              b = baseline?.items.find((b) => b.id === a.id);
+              b = baseline?.items.find((b) => b.id === a.id),
+              isCritical = critical.has(a.id),
+              broken = conflicts.filter((k) => k.activityId === a.id);
             return (
-              <div className="gantt-row" key={a.id}>
+              <div
+                className={
+                  "gantt-row" + (broken.length ? " gantt-row-conflict" : "")
+                }
+                key={a.id}
+              >
                 <div>
                   <strong>
                     {a.code} <span>{a.title}</span>
@@ -77,17 +110,25 @@ export function PlanningGantt({
                     {a.responsible.map(person).join(", ") || "Sin responsable"}
                     {a.unscheduled ? " · sin planificar" : ""}
                   </small>
-                  <small>
-                    {a.dependencies.length
-                      ? "Depende de " +
-                        a.dependencies
-                          .map(
-                            (id) =>
-                              p.activities.find((t) => t.id === id)?.code ?? id,
-                          )
-                          .join(", ")
-                      : "Sin predecesoras"}
-                  </small>
+                  {/* Se reemplaza la línea de dependencias para no cambiar la altura de la fila (las flechas usan rowHeight). */}
+                  {broken.length ? (
+                    <small
+                      className="gantt-conflict-note"
+                      title={
+                        "Depende de " + a.dependencies.map(code).join(", ")
+                      }
+                    >
+                      <TriangleAlert size={12} />
+                      Empieza antes de que termine{" "}
+                      {broken.map((k) => code(k.predecessorId)).join(", ")}
+                    </small>
+                  ) : (
+                    <small>
+                      {a.dependencies.length
+                        ? "Depende de " + a.dependencies.map(code).join(", ")
+                        : "Sin predecesoras"}
+                    </small>
+                  )}
                 </div>
                 <div
                   className="gantt-lane"
@@ -126,16 +167,16 @@ export function PlanningGantt({
                   <button
                     className={
                       "gantt-bar " +
-                      (r?.critical ? "critical" : "") +
+                      (isCritical ? "critical" : "") +
                       (a.duration === 0 ? " milestone-bar" : "") +
                       (a.unscheduled ? " provisional" : "")
                     }
-                    title={`${a.code} · ${a.title} · ${a.duration} días · Holgura ${r?.slack ?? "—"}`}
-                    aria-label={`Planificar ${a.code}: ${a.title}`}
+                    title={`${a.code} · ${a.title} · ${a.duration} días · Holgura ${r?.slack ?? "—"}${isCritical ? " · ruta crítica" : ""}`}
+                    aria-label={`Planificar ${a.code}: ${a.title}${isCritical ? " (ruta crítica)" : ""}`}
                     style={{
                       left: x(a.start) + "%",
                       width: width(a.duration) + "%",
-                      background: r?.critical
+                      background: isCritical
                         ? undefined
                         : p.teams.find((t) => t.id === a.teamId)?.color,
                     }}
@@ -164,6 +205,16 @@ export function PlanningGantt({
               >
                 <path d="M0,0 L6,3 L0,6 Z" fill="#7e8ea7" />
               </marker>
+              <marker
+                id="dependency-arrow-conflict"
+                markerWidth="6"
+                markerHeight="6"
+                refX="5"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0,0 L6,3 L0,6 Z" fill="#c2410c" />
+              </marker>
             </defs>
             {rows.flatMap((a, i) =>
               a.dependencies.map((id) => {
@@ -177,16 +228,19 @@ export function PlanningGantt({
                   end = x(a.start) * 10,
                   y1 = j * rowHeight + 29,
                   y2 = i * rowHeight + 29,
-                  bend = Math.min(998, start + 9);
+                  bend = Math.min(998, start + 9),
+                  broken = conflicts.some(
+                    (k) => k.activityId === a.id && k.predecessorId === id,
+                  );
                 return (
                   <path
                     key={a.id + "-" + id}
                     d={`M${start},${y1} H${bend} V${y2} H${Math.max(0, end)}`}
                     fill="none"
-                    stroke="#7e8ea7"
-                    strokeWidth="1"
+                    stroke={broken ? "#c2410c" : "#7e8ea7"}
+                    strokeWidth={broken ? 1.6 : 1}
                     strokeDasharray="3 2"
-                    markerEnd="url(#dependency-arrow)"
+                    markerEnd={`url(#${broken ? "dependency-arrow-conflict" : "dependency-arrow"})`}
                   />
                 );
               }),
@@ -215,8 +269,10 @@ export function PlanningGantt({
         </div>
       </div>
       <p className="form-note">
-        Rojo: ruta crítica · Gris: línea base · Verde: ejecución real · Flechas:
-        dependencias · ◆: hito · Punteado: provisional. Selecciona una barra
+        Rojo: ruta crítica (si se atrasa, se atrasa la fecha final) · Gris:
+        línea base · Verde: ejecución real · Flechas: dependencias · Flecha
+        naranja: dependencia que no se cumple · ◆: hito · Punteado: provisional.
+        Desplázate a los lados para ver todas las semanas y selecciona una barra
         para planificar.
       </p>
     </section>

@@ -39,6 +39,9 @@ export function nextActivityCode(p: Project, teamId: string) {
   while (used.has(`${prefix}-${String(n).padStart(3, "0")}`)) n++;
   return `${prefix}-${String(n).padStart(3, "0")}`;
 }
+/** Orden natural por código (ELE-002 antes de ELE-010) para listas y desplegables. */
+export const byCode = (a: { code: string }, b: { code: string }) =>
+  a.code.localeCompare(b.code, "es", { numeric: true });
 export function matchesActivityCode(a: Activity, code: string) {
   return [a.code, ...(a.aliases ?? [])].some(
     (c) => c.toUpperCase() === code.trim().toUpperCase(),

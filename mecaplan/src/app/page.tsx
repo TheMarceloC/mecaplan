@@ -15,7 +15,13 @@ import {
   ActivityExtras,
   ControlSummary,
 } from "@/components/activity-extras";
-import { planning } from "@/lib/control";
+import {
+  control,
+  scheduledCriticalIds,
+  endFromDuration,
+  durationBetween,
+} from "@/lib/control";
+import { byCode, normalizeText } from "@/lib/codes";
 import {
   useEffect,
   useState,
@@ -26,6 +32,7 @@ import {
 import {
   Activity as Pulse,
   ArrowDown,
+  ArrowUp,
   ArrowRight,
   ArrowUpRight,
   Bell,
@@ -87,6 +94,25 @@ type View =
   | "history"
   | "admin"
   | PhaseView;
+type SortKey = "code" | "team" | "status" | "responsible" | "end";
+const sortColumns: [SortKey, string][] = [
+  ["code", "ACTIVIDAD"],
+  ["team", "EQUIPO"],
+  ["status", "ESTADO"],
+  ["responsible", "RESPONSABLE"],
+  ["end", "ENTREGA"],
+];
+// Vistas donde crear una actividad es la acción principal. En las demás el
+// botón competía con la acción propia de la sección (registrar gasto, riesgo…).
+const activityViews: View[] = [
+  "overview",
+  "tasks",
+  "activities",
+  "kanban",
+  "planning",
+];
+const criticalHint =
+  "Ruta crítica: si se atrasa, se atrasa la fecha final del proyecto";
 type Filters = {
   critical: string;
   q: string;
@@ -163,7 +189,23 @@ export default function App() {
       id: string;
       title: string;
     } | null>(null),
-    [userFilter, setUserFilter] = useState("");
+    [userFilter, setUserFilter] = useState(""),
+    [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null),
+    [planningOpen, setPlanningOpen] = useState(true);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("mecaplan:nav-planning") === "closed")
+        setPlanningOpen(false);
+    } catch {}
+  }, []);
+  function togglePlanning() {
+    setPlanningOpen((open) => {
+      try {
+        localStorage.setItem("mecaplan:nav-planning", open ? "closed" : "open");
+      } catch {}
+      return !open;
+    });
+  }
   async function load() {
     const r = await fetch("/api/app", { cache: "no-store" });
     if (!r.ok) throw Error("No se pudo cargar el proyecto.");
@@ -553,7 +595,39 @@ export default function App() {
         </button>
       </div>
     );
-  const criticalIds = new Set(project ? planning(project).criticalIds : []);
+  const criticalIds = project
+    ? scheduledCriticalIds(project)
+    : new Set<string>();
+  const teamName = (id: string) =>
+      project?.teams.find((t) => t.id === id)?.name ?? "",
+    ownerName = (a: Activity) =>
+      project?.members.find((m) => m.id === a.responsible[0])?.name ?? "";
+  // Sin orden elegido: Mis tareas por entrega y el resto por código. Las
+  // actividades sin planificar (al ordenar por entrega) y las que no tienen
+  // responsable (al ordenar por responsable) quedan al final en ambos sentidos.
+  const sortKey = sort?.key ?? (view === "tasks" ? "end" : "code"),
+    sortDir = sort?.dir ?? 1;
+  const compare = (a: Activity, b: Activity) => {
+    if (sortKey === "end") {
+      const unplanned = Number(!!a.unscheduled) - Number(!!b.unscheduled);
+      if (unplanned) return unplanned;
+    }
+    if (sortKey === "responsible") {
+      const unassigned = Number(!ownerName(a)) - Number(!ownerName(b));
+      if (unassigned) return unassigned;
+    }
+    const r =
+      sortKey === "end"
+        ? a.end.localeCompare(b.end)
+        : sortKey === "code"
+          ? byCode(a, b)
+          : sortKey === "team"
+            ? teamName(a.teamId).localeCompare(teamName(b.teamId), "es")
+            : sortKey === "status"
+              ? states.indexOf(a.status) - states.indexOf(b.status)
+              : ownerName(a).localeCompare(ownerName(b), "es");
+    return r * sortDir || byCode(a, b);
+  };
   const activities = project?.activities.filter((a) => !a.deletedAt) ?? [],
     visible = activities
       .filter((a) => {
@@ -634,11 +708,12 @@ export default function App() {
           return false;
         return true;
       })
-      .sort((a, b) =>
-        view === "tasks"
-          ? a.end.localeCompare(b.end)
-          : a.code.localeCompare(b.code, "es", { numeric: true }),
-      );
+      .sort(compare);
+  const pendingMine = activities.filter(
+    (a) =>
+      (a.responsible.includes(user.id) || a.accountable === user.id) &&
+      !["Hecha", "Cancelada"].includes(a.status),
+  ).length;
   const done = activities.filter((a) => a.status === "Hecha").length,
     blocked = activities.filter((a) => a.status === "Bloqueada").length,
     overdue = activities.filter(
@@ -710,26 +785,35 @@ export default function App() {
               <Icon size={19} />
               {label}
               {key === "tasks" && (
-                <span className="nav-counter">
-                  {
-                    activities.filter(
-                      (a) =>
-                        (a.responsible.includes(user.id) ||
-                          a.accountable === user.id) &&
-                        a.status !== "Hecha",
-                    ).length
-                  }
+                <span
+                  className="nav-counter"
+                  title={pendingMine + " pendientes"}
+                  aria-label={pendingMine + " pendientes"}
+                >
+                  {pendingMine}
                 </span>
               )}
             </button>
           ))}
         </nav>
-        <span className="nav-label next-label">PLANIFICACIÓN Y CONTROL</span>
-        <nav>
+        <button
+          type="button"
+          className="nav-label next-label nav-group-toggle"
+          aria-expanded={planningOpen}
+          aria-controls="nav-planning"
+          onClick={togglePlanning}
+        >
+          PLANIFICACIÓN Y CONTROL
+          <ChevronDown size={13} aria-hidden="true" />
+        </button>
+        {/* Plegado, el grupo solo muestra la sección abierta para no perder la ubicación. */}
+        <nav id="nav-planning">
           {(Object.keys(phaseTitles) as PhaseView[])
             .filter(
               (key) =>
-                key !== "files" && (key !== "evaluation" || user.isInstructor),
+                key !== "files" &&
+                (key !== "evaluation" || user.isInstructor) &&
+                (planningOpen || view === key),
             )
             .map((key) => (
               <button
@@ -926,18 +1010,19 @@ export default function App() {
                       Configurar proyecto
                     </button>
                   )}
-                  {can(user, "activity:edit", project, {
-                    teamId: project.members.find((m) => m.id === user.id)
-                      ?.teamId,
-                  } as Activity) && (
-                    <button
-                      className="primary"
-                      onClick={() => openActivity(null)}
-                    >
-                      <Plus size={17} />
-                      Nueva actividad
-                    </button>
-                  )}
+                  {activityViews.includes(view) &&
+                    can(user, "activity:edit", project, {
+                      teamId: project.members.find((m) => m.id === user.id)
+                        ?.teamId,
+                    } as Activity) && (
+                      <button
+                        className="primary"
+                        onClick={() => openActivity(null)}
+                      >
+                        <Plus size={17} />
+                        Nueva actividad
+                      </button>
+                    )}
                 </div>
               </div>
               {Object.prototype.hasOwnProperty.call(phaseTitles, view) && (
@@ -1166,7 +1251,9 @@ export default function App() {
                             integrantes
                           </p>
                           <div className="team-progress-label">
-                            <span>{n} completadas</span>
+                            <span>
+                              {n} {n === 1 ? "completada" : "completadas"}
+                            </span>
                             <strong>{pct}%</strong>
                           </div>
                           <div className="team-progress">
@@ -1225,6 +1312,12 @@ export default function App() {
                             : "Tu plan de trabajo"}
                       </h2>
                       <span className="count">{visible.length}</span>
+                      {view === "tasks" && (
+                        <span className="subtle pending-note">
+                          {pendingMine}{" "}
+                          {pendingMine === 1 ? "pendiente" : "pendientes"}
+                        </span>
+                      )}
                     </div>
                     {view !== "kanban" && (
                       <div className="view-switch">
@@ -1237,7 +1330,7 @@ export default function App() {
                           Lista
                         </button>
                         <button
-                          aria-label="Vista Kanban"
+                          aria-label="Vista de tablero"
                           className={board ? "active" : ""}
                           onClick={() => setBoard(true)}
                         >
@@ -1321,6 +1414,13 @@ export default function App() {
                       </button>
                     </div>
                   )}
+                  {visible.some((a) => criticalIds.has(a.id)) && (
+                    <p className="critical-legend">
+                      <i aria-hidden="true" />
+                      Borde rojo: ruta crítica. Si una de estas actividades se
+                      atrasa, se atrasa la fecha final del proyecto.
+                    </p>
+                  )}
                   {board ? (
                     <div
                       className="kanban"
@@ -1371,6 +1471,11 @@ export default function App() {
                                       ? "critical-card"
                                       : "")
                                   }
+                                  title={
+                                    criticalIds.has(a.id)
+                                      ? criticalHint
+                                      : undefined
+                                  }
                                   draggable={can(
                                     user,
                                     "activity:status",
@@ -1382,7 +1487,15 @@ export default function App() {
                                   }
                                   onClick={() => openActivity(a)}
                                 >
-                                  <span className="code">{a.code}</span>
+                                  <span className="code">
+                                    {a.code}
+                                    {criticalIds.has(a.id) && (
+                                      <span className="sr-only">
+                                        {" "}
+                                        · ruta crítica
+                                      </span>
+                                    )}
+                                  </span>
                                   <strong>{a.title}</strong>
                                   <span className="team-label">
                                     <i
@@ -1426,14 +1539,41 @@ export default function App() {
                             <th className="check-cell">
                               <Check size={13} />
                             </th>
-                            <th>ACTIVIDAD</th>
-                            <th>EQUIPO</th>
-                            <th>ESTADO</th>
-                            <th>RESPONSABLE</th>
-                            <th>
-                              ENTREGA
-                              <ArrowDown size={11} />
-                            </th>
+                            {sortColumns.map(([key, label]) => (
+                              <th
+                                key={key}
+                                aria-sort={
+                                  sortKey === key
+                                    ? sortDir === 1
+                                      ? "ascending"
+                                      : "descending"
+                                    : "none"
+                                }
+                              >
+                                <button
+                                  type="button"
+                                  className="sort-header"
+                                  title={"Ordenar por " + label.toLowerCase()}
+                                  onClick={() =>
+                                    setSort({
+                                      key,
+                                      dir:
+                                        sortKey === key && sortDir === 1
+                                          ? -1
+                                          : 1,
+                                    })
+                                  }
+                                >
+                                  {label}
+                                  {sortKey === key &&
+                                    (sortDir === 1 ? (
+                                      <ArrowUp size={11} aria-hidden="true" />
+                                    ) : (
+                                      <ArrowDown size={11} aria-hidden="true" />
+                                    ))}
+                                </button>
+                              </th>
+                            ))}
                             <th />
                           </tr>
                         </thead>
@@ -1448,6 +1588,11 @@ export default function App() {
                                 key={a.id}
                                 className={
                                   criticalIds.has(a.id) ? "critical-row" : ""
+                                }
+                                title={
+                                  criticalIds.has(a.id)
+                                    ? criticalHint
+                                    : undefined
                                 }
                               >
                                 <td className="check-cell">
@@ -1487,8 +1632,20 @@ export default function App() {
                                     <span className="code">
                                       {a.code}
                                       {a.parentId && " ↳"}
+                                      {criticalIds.has(a.id) && (
+                                        <span className="sr-only">
+                                          {" "}
+                                          · ruta crítica
+                                        </span>
+                                      )}
                                     </span>
                                     <strong>{a.title}</strong>
+                                    <small className="mobile-meta">
+                                      {a.unscheduled
+                                        ? "Sin planificar"
+                                        : date(a.end)}{" "}
+                                      · {ownerName(a) || "Sin asignar"}
+                                    </small>
                                   </button>
                                   {can(user, "activity:edit", project, a) && (
                                     <button
@@ -2306,10 +2463,41 @@ function ActivityEditor({
       },
     ),
     [note, setNote] = useState(""),
-    [localError, setLocalError] = useState("");
-  const edit = can(user, "activity:edit", project, draft);
+    [localError, setLocalError] = useState(""),
+    [raciQuery, setRaciQuery] = useState("");
+  const edit = can(user, "activity:edit", project, draft),
+    workingDays = control(project).workingDays;
   const patch = <K extends keyof Activity>(k: K, v: Activity[K]) =>
     setDraft((a) => ({ ...a, [k]: v }));
+  // Inicio + duración definen la entrega; si se edita la entrega, se recalcula la duración.
+  const changeStart = (start: string) =>
+    setDraft((a) => ({
+      ...a,
+      start,
+      end: start ? endFromDuration(start, a.duration, workingDays) : a.end,
+    }));
+  const changeDuration = (duration: number) =>
+    setDraft((a) => ({
+      ...a,
+      duration,
+      end:
+        a.start && Number.isFinite(duration)
+          ? endFromDuration(a.start, duration, workingDays)
+          : a.end,
+    }));
+  const changeEnd = (end: string) =>
+    setDraft((a) => ({
+      ...a,
+      end,
+      duration:
+        end && end >= a.start
+          ? durationBetween(a.start, end, workingDays)
+          : a.duration,
+    }));
+  const raciMatch = (name: string) =>
+    !raciQuery.trim() || normalizeText(name).includes(normalizeText(raciQuery));
+  const teamMembers = (teamId: string) =>
+    project.members.filter((m) => m.teamId === teamId);
   return (
     <Modal
       title={
@@ -2405,6 +2593,7 @@ function ActivityEditor({
               <option value="">Actividad principal</option>
               {project.activities
                 .filter((a) => a.id !== draft.id && !a.deletedAt)
+                .sort(byCode)
                 .map((a) => (
                   <option value={a.id} key={a.id}>
                     {a.code} · {a.title}
@@ -2418,18 +2607,7 @@ function ActivityEditor({
               type="date"
               required
               value={draft.start}
-              onChange={(e) => patch("start", e.target.value)}
-              disabled={!edit}
-            />
-          </label>
-          <label>
-            Entrega prevista
-            <input
-              type="date"
-              required
-              min={draft.start}
-              value={draft.end}
-              onChange={(e) => patch("end", e.target.value)}
+              onChange={(e) => changeStart(e.target.value)}
               disabled={!edit}
             />
           </label>
@@ -2441,11 +2619,29 @@ function ActivityEditor({
               min={0}
               max={365}
               value={draft.duration}
-              onChange={(e) => patch("duration", Number(e.target.value))}
+              onChange={(e) => changeDuration(Number(e.target.value))}
+              disabled={!edit}
+            />
+          </label>
+          <label>
+            Entrega prevista
+            <input
+              type="date"
+              required
+              min={draft.start}
+              value={draft.end}
+              onChange={(e) => changeEnd(e.target.value)}
               disabled={!edit}
             />
           </label>
         </div>
+        {edit && (
+          <p className="form-note">
+            La entrega se calcula con el inicio y la duración en días hábiles (
+            {workingDays} por semana). Si cambias la entrega, se ajusta la
+            duración.
+          </p>
+        )}
         {draft.status === "Bloqueada" && (
           <label>
             Motivo del bloqueo
@@ -2475,6 +2671,21 @@ function ActivityEditor({
             ? "Responsabilidades definidas."
             : "Asigna exactamente una persona A y al menos una R."}
         </p>
+        {edit && (
+          <label className="raci-search">
+            Buscar persona
+            <input
+              type="search"
+              value={raciQuery}
+              onChange={(e) => setRaciQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter en el buscador no debe guardar la actividad.
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              placeholder="Nombre o apellido"
+            />
+          </label>
+        )}
         <div className="form-grid">
           <label>
             A · Aprueba el entregable
@@ -2484,36 +2695,55 @@ function ActivityEditor({
               onChange={(e) => patch("accountable", e.target.value)}
             >
               <option value="">Sin asignar</option>
-              {project.members.map((m) => (
-                <option value={m.id} key={m.id}>
-                  {m.name}
-                </option>
+              {project.teams.map((t) => (
+                <optgroup key={t.id} label={t.name}>
+                  {teamMembers(t.id).map((m) => (
+                    <option value={m.id} key={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </label>
           {(["responsible", "consulted", "informed"] as const).map((key, i) => (
             <fieldset key={key} disabled={!edit}>
               <legend>
-                {["R · Realiza", "C · Se consulta", "I · Se informa"][i]}
+                {["R · Realiza", "C · Se consulta", "I · Se informa"][i]}{" "}
+                <span className="subtle">
+                  · {draft[key].length}{" "}
+                  {draft[key].length === 1 ? "persona" : "personas"}
+                </span>
               </legend>
               <div className="raci-people">
-                {project.members.map((m) => (
-                  <label key={m.id} className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={draft[key].includes(m.id)}
-                      onChange={(e) =>
-                        patch(
-                          key,
-                          e.target.checked
-                            ? [...draft[key], m.id]
-                            : draft[key].filter((id) => id !== m.id),
-                        )
-                      }
-                    />
-                    {m.name}
-                  </label>
-                ))}
+                {project.teams.map((t) => {
+                  // Las personas ya marcadas siguen visibles aunque no coincidan con la búsqueda.
+                  const people = teamMembers(t.id).filter(
+                    (m) => raciMatch(m.name) || draft[key].includes(m.id),
+                  );
+                  return people.length ? (
+                    <div key={t.id} className="raci-team">
+                      <span className="raci-team-name">{t.name}</span>
+                      {people.map((m) => (
+                        <label key={m.id} className="checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={draft[key].includes(m.id)}
+                            onChange={(e) =>
+                              patch(
+                                key,
+                                e.target.checked
+                                  ? [...draft[key], m.id]
+                                  : draft[key].filter((id) => id !== m.id),
+                              )
+                            }
+                          />
+                          {m.name}
+                        </label>
+                      ))}
+                    </div>
+                  ) : null;
+                })}
               </div>
             </fieldset>
           ))}

@@ -100,6 +100,50 @@ export function planning(p: Project) {
       .length,
   };
 }
+/** Ruta crítica sin las actividades sin planificar: su duración provisional no debe pintarse como crítica. */
+export function scheduledCriticalIds(p: Project) {
+  const unscheduled = new Set(
+    p.activities.filter((a) => a.unscheduled).map((a) => a.id),
+  );
+  return new Set(planning(p).criticalIds.filter((id) => !unscheduled.has(id)));
+}
+/** Entrega prevista a partir del inicio y la duración en días hábiles (la duración incluye el día de inicio). */
+export function endFromDuration(
+  start: string,
+  duration: number,
+  workingDays = 5,
+) {
+  return addWorkingDays(
+    start,
+    Math.max(0, Math.floor(duration) - 1),
+    workingDays,
+  );
+}
+/** Días hábiles entre inicio y entrega, contando ambos días. */
+export function durationBetween(start: string, end: string, workingDays = 5) {
+  return end < start ? 0 : workingDaysInclusive(start, end, workingDays);
+}
+/**
+ * Dependencias fin-inicio que las fechas guardadas no respetan: la sucesora
+ * empieza antes del día hábil siguiente al fin de su predecesora más el desfase.
+ */
+export function dependencyConflicts(p: Project) {
+  const days = control(p).workingDays,
+    active = p.activities.filter(
+      (a) => !a.deletedAt && !a.unscheduled && a.status !== "Cancelada",
+    );
+  return active.flatMap((a) =>
+    a.dependencies.flatMap((id) => {
+      const pred = active.find((b) => b.id === id),
+        lag = a.dependencyLags?.[id] ?? 0;
+      if (!pred || lag < 0) return [];
+      const required = addWorkingDays(pred.end, 1 + lag, days);
+      return a.start < required
+        ? [{ activityId: a.id, predecessorId: pred.id, required }]
+        : [];
+    }),
+  );
+}
 export function reschedule(p: Project) {
   const plan = planning(p),
     days = control(p).workingDays;

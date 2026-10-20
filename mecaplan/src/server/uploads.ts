@@ -2,6 +2,7 @@ import { dataDirectory } from "./data-directory";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { postgresEnabled } from "./repositories/sql-driver";
+import { textUploadTypes, zipUploadTypes } from "../lib/upload-types";
 export const uploadDirectory = () => path.join(dataDirectory(), "uploads");
 export const maxUpload = () =>
   Math.min(
@@ -38,16 +39,22 @@ export function detectUpload(name: string, bytes: Uint8Array) {
     head.subarray(8, 12).toString() === "WEBP"
   )
     return "image/webp";
-  if (ext === ".xlsx" && head[0] === 80 && head[1] === 75)
-    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-  if (
-    [".txt", ".md", ".csv", ".step", ".stp", ".stl"].includes(ext) &&
-    !bytes.subarray(0, 4096).includes(0)
-  )
+  const zip =
+    head[0] === 80 && head[1] === 75 && head[2] === 3 && head[3] === 4;
+  if (zip && ext in zipUploadTypes) return zipUploadTypes[ext];
+  if (textUploadTypes.includes(ext) && !bytes.subarray(0, 4096).includes(0))
     return "text/plain";
+  if (ext === ".stl" && binaryStl(bytes)) return "model/stl";
   throw Error(
-    "Tipo no permitido o contenido que no corresponde al archivo. Usa PDF, imagen, XLSX o texto/STEP/STL ASCII.",
+    "Tipo no permitido o contenido que no corresponde al archivo. Usa PDF, imagen, Word, PowerPoint, Excel, ZIP, STL, STEP o código fuente.",
   );
+}
+// STL binario (formato por defecto de SolidWorks y Fusion): cabecera de 80 bytes,
+// número de triángulos y 50 bytes por triángulo.
+function binaryStl(bytes: Uint8Array) {
+  if (bytes.length < 84) return false;
+  const triangles = Buffer.from(bytes.subarray(80, 84)).readUInt32LE(0);
+  return bytes.length === 84 + triangles * 50;
 }
 export async function storeUpload(id: string, bytes: Uint8Array) {
   if (postgresEnabled())

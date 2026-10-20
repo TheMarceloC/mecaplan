@@ -38,7 +38,10 @@ import {
   budgetTotals,
   parseMoney,
   weeklyLoads,
+  scheduledCriticalIds,
 } from "@/lib/control";
+import { byCode } from "@/lib/codes";
+import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
 import { workingDayDistance } from "@/lib/cpm";
 import { can } from "@/server/auth/permissions";
 import { RiskPanel } from "./risk-panel";
@@ -159,6 +162,7 @@ export function PhasePanel(props: Props) {
   } = props;
   const c = control(p),
     plan = planning(p),
+    critical = scheduledCriticalIds(p),
     admin = can(user, "project:edit", p),
     person = (id: string) =>
       p.members.find((m) => m.id === id)?.name ?? "Sin asignar",
@@ -262,6 +266,7 @@ export function PhasePanel(props: Props) {
     people = p.members.map((m) => ({ value: m.id, label: m.name })),
     tasks = p.activities
       .filter((a) => !a.deletedAt)
+      .sort(byCode)
       .map((a) => ({ value: a.id, label: a.code + " · " + a.title }));
   const startDialog = (kind: string, value?: any) => {
     setError("");
@@ -680,7 +685,7 @@ export function PhasePanel(props: Props) {
                       return (
                         <tr
                           key={a.id}
-                          className={r?.critical ? "critical-row" : ""}
+                          className={critical.has(a.id) ? "critical-row" : ""}
                         >
                           <td>
                             <strong>{a.code}</strong>
@@ -712,10 +717,12 @@ export function PhasePanel(props: Props) {
                             {r?.lateStart ?? "—"} / {r?.lateFinish ?? "—"}
                           </td>
                           <td>
-                            {r?.critical ? (
+                            {critical.has(a.id) ? (
                               <span className="phase-status rejected">
                                 Crítica · 0 d
                               </span>
+                            ) : a.unscheduled ? (
+                              "Provisional"
                             ) : (
                               (r?.slack ?? "—") + " d"
                             )}
@@ -1022,8 +1029,9 @@ export function PhasePanel(props: Props) {
                 </div>
                 {!c.budget.length && (
                   <Empty>
-                    Agrega las partidas reales del proyecto. Los precios que
-                    faltaban en el Excel se mantienen sin inventar.
+                    Todavía no hay partidas. Agrega la primera con «Nueva
+                    partida» o impórtalas desde Excel; las partidas sin precio
+                    quedan en {money(0)} hasta que lo completes.
                   </Empty>
                 )}
               </>
@@ -1341,8 +1349,8 @@ export function PhasePanel(props: Props) {
           </div>
           <p className="form-note">
             Los archivos nuevos se guardan en OneDrive. Para asociar enlaces y
-            migrar los anteriores, abre OneDrive y archivos. PDF, imágenes, XLSX
-            y texto/STEP/STL ASCII. Consulta el límite actual en OneDrive y
+            migrar los anteriores, abre OneDrive y archivos. Formatos:{" "}
+            {uploadTypesLabel}. Consulta el límite actual en OneDrive y
             archivos; también puedes asociar enlaces de documentos mayores.
           </p>
           {!c.files.length ? (
