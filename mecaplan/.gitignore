@@ -1,0 +1,16 @@
+node_modules/
+.next*/
+data/
+.env*
+!.env.example
+!.env.vercel.example
+.vercel/
+work/
+backups/
+*.tsbuildinfo
+test-results/
+playwright-report/
+outputs/
+# Los libros reales del curso permanecen en OneDrive y los respaldos privados.
+referencias/*.xlsx
+*.sqlite*

@@ -1,0 +1,550 @@
+{
+  "generatedUtc": "2026-10-19T23:13:48.910874+00:00",
+  "files": [
+    {
+      "path": "CONTEOS_ORIGEN.json",
+      "bytes": 130,
+      "sha256": "862c6f20b698e8d37767487992e7b2138bba05b2293959ed3e8a60384aa755b8"
+    },
+    {
+      "path": "CONTEXTO_REVISION.md",
+      "bytes": 3382,
+      "sha256": "b62e7d77b2bf27fdd805a644a3a998d35c199e8c1a0d7a99e8eb0829eb2aa23a"
+    },
+    {
+      "path": "LEEME_ANALISIS.md",
+      "bytes": 1789,
+      "sha256": "ad60dd44fbe5038d2bf2c315b64baf9f5baa768b8184f1ab41038ec6c4800a6f"
+    },
+    {
+      "path": "mecaplan/.env.example",
+      "bytes": 560,
+      "sha256": "226f4bc1bff80ee776f836fa5dff1418d6b198d2f2da47ced5788c3cf9abbbe6"
+    },
+    {
+      "path": "mecaplan/.gitignore",
+      "bytes": 104,
+      "sha256": "7c63e8f17ebed7a3b2d3460d5c15a5fd6e6ec244994bae957aa2da4cb7d51ea9"
+    },
+    {
+      "path": "mecaplan/AGENTS.md",
+      "bytes": 679,
+      "sha256": "063098f6cb31bb44c6f8fbea25b3876de7ee1e5f7d00a50dbab506f6415eb7f0"
+    },
+    {
+      "path": "mecaplan/docs/ARCHITECTURE.md",
+      "bytes": 2848,
+      "sha256": "ee370a71161a0404ee69bc16c0ef1ebca95e359855ca259905db3d56a9a1f5f6"
+    },
+    {
+      "path": "mecaplan/docs/DECISIONS.md",
+      "bytes": 5301,
+      "sha256": "8b0f73c3cdc223e4d138bad3e535f5202e9ad1f06d1c786d02bb55fe77820ec1"
+    },
+    {
+      "path": "mecaplan/docs/DESIGN.md",
+      "bytes": 1483,
+      "sha256": "8e81b386b7fba2a61ff0a2b2447863597520483170ed85b19bf6942bf8da24dd"
+    },
+    {
+      "path": "mecaplan/docs/ESTADO_ENTREGA.md",
+      "bytes": 4211,
+      "sha256": "0297a32b6c6b3cf98e4403f7f7801a2912a17f5e66aae75c46081a7aeb261fec"
+    },
+    {
+      "path": "mecaplan/docs/GITHUB.md",
+      "bytes": 1986,
+      "sha256": "ebb082fa9d13f1616ecbdaeb32b2de5b4cbc5ab35aa90382d7f94ee52737ef10"
+    },
+    {
+      "path": "mecaplan/docs/HANDOFF.md",
+      "bytes": 7585,
+      "sha256": "e6aa94bf09a4dff5572853892abb47858f2c8edeb987739c2568a95aa8db8712"
+    },
+    {
+      "path": "mecaplan/docs/mecaplan-escritorio.jpg",
+      "bytes": 82640,
+      "sha256": "faa3e5a26a28b023d4ba83e766110994b44d282483463065d576e46f4e530f99"
+    },
+    {
+      "path": "mecaplan/docs/mecaplan-fase1b.png",
+      "bytes": 79572,
+      "sha256": "4785686a26d177494f3ea90572cf4e051a0ef5e698d3d6e06dbdf8b5aafde6e1"
+    },
+    {
+      "path": "mecaplan/docs/mecaplan-mejoras.png",
+      "bytes": 111158,
+      "sha256": "60ba23123d69a95d83b264877214932a2e224a41c831d91e964398e912a06526"
+    },
+    {
+      "path": "mecaplan/docs/MEJORAS_ACORDADAS.md",
+      "bytes": 4171,
+      "sha256": "7de8f23d7b02bd3b5f70fab9db90a3e5b0c844c7602ee8d76f0e28b327fe3a6c"
+    },
+    {
+      "path": "mecaplan/docs/ONEDRIVE.md",
+      "bytes": 5560,
+      "sha256": "0a0cf55eee5e0f811c596eb219c5686e29591f2f05a8671ac86b1c5208c58bc3"
+    },
+    {
+      "path": "mecaplan/docs/PHASE1B.md",
+      "bytes": 4167,
+      "sha256": "25e5290d1d3eb015db20f58d09aa4bbda577eca5641e6dda2565ee7b8048c042"
+    },
+    {
+      "path": "mecaplan/docs/VALIDATION.md",
+      "bytes": 1674,
+      "sha256": "669770ecef29445567b1e293a4b1657859578ed7991d6556d6436eb8bf96a1f1"
+    },
+    {
+      "path": "mecaplan/next-env.d.ts",
+      "bytes": 311,
+      "sha256": "9f1aedfb388c328b6466f3ad88f41e9ea07ffe6f8cee9356c28389c2c4dfebc0"
+    },
+    {
+      "path": "mecaplan/next.config.ts",
+      "bytes": 196,
+      "sha256": "258b1b5b027d53b45af6cf347ec20525a513db0fedc9787dba3099624d808cad"
+    },
+    {
+      "path": "mecaplan/package.json",
+      "bytes": 1311,
+      "sha256": "556b2939db9f441a0ffd93c8d3e715071b4ed8e0fbb354f43bbf7f9036e65b21"
+    },
+    {
+      "path": "mecaplan/playwright.config.ts",
+      "bytes": 233,
+      "sha256": "0a41a3ac099d0f16f5d78bdbeb5cdbc9670329767b12bb844b1428c449953fc4"
+    },
+    {
+      "path": "mecaplan/pnpm-lock.yaml",
+      "bytes": 119293,
+      "sha256": "617cbd2b71f8336c3701e110d67baca83900f344a665ecb9bd4315fb9e0727d8"
+    },
+    {
+      "path": "mecaplan/pnpm-workspace.yaml",
+      "bytes": 29,
+      "sha256": "ac02d96368617c760f093cfe61fdec64b6244007ab3553e0d6621f706f54a353"
+    },
+    {
+      "path": "mecaplan/postcss.config.mjs",
+      "bytes": 60,
+      "sha256": "f50058e0d309cdb3e7c25a1123337338641fb71e988572607d57f47209db1fd1"
+    },
+    {
+      "path": "mecaplan/PROMPT_ANALIZAR_MECAPLAN.md",
+      "bytes": 3657,
+      "sha256": "4f22fed48530d5b5ba4271be9ff7cb40bab17c2ff0e4aa0c98dd7ea5260cc8f8"
+    },
+    {
+      "path": "mecaplan/PROMPT_CONTINUAR_MECAPLAN.md",
+      "bytes": 2179,
+      "sha256": "c6aa696fab3eb0bf91630d817892c06b3ff79161a06f88e351e41ca2117ff198"
+    },
+    {
+      "path": "mecaplan/public/fonts/OFL.txt",
+      "bytes": 4385,
+      "sha256": "6be04893d770899a015649c7aa3b582f871b272f8747a92b78b17c3e5c8b2573"
+    },
+    {
+      "path": "mecaplan/public/fonts/poppins-400.woff2",
+      "bytes": 7884,
+      "sha256": "7d93459d86585bfcdbb7e0376056226adb25821ee54b96236fe2123e9560929f"
+    },
+    {
+      "path": "mecaplan/public/fonts/poppins-500.woff2",
+      "bytes": 7748,
+      "sha256": "cd36de204aca2d5fa263a731f7c20009b5e3d754ba1f1e03c33e93a48f3e7446"
+    },
+    {
+      "path": "mecaplan/public/fonts/poppins-600.woff2",
+      "bytes": 8000,
+      "sha256": "f4e80d9dfd374d02989b87a27b5ed4cb78fbb177c27f1478e9a8b0afb7513149"
+    },
+    {
+      "path": "mecaplan/public/fonts/poppins-700.woff2",
+      "bytes": 7816,
+      "sha256": "9338e65fc077355c7a87ae0d64cc101e23b9bf8ad78ae65f0f319c857311b526"
+    },
+    {
+      "path": "mecaplan/public/fonts/poppins-800.woff2",
+      "bytes": 7824,
+      "sha256": "60bf0aba6526436f3930c58c12047687fbb6bff4dd180cce4613458ed3439ea2"
+    },
+    {
+      "path": "mecaplan/public/guia-onedrive.html",
+      "bytes": 7423,
+      "sha256": "4e589da0a8a7404f633d92e277797c404d75e8a2763700d7c445cb98084a0786"
+    },
+    {
+      "path": "mecaplan/public/plantilla-mecaplan.xlsx",
+      "bytes": 26481,
+      "sha256": "ba8a521ec68a82cbdaa368d9ed71e9cb04bc1a53afd576d96a40f905ca88a243"
+    },
+    {
+      "path": "mecaplan/public/unitec-logo.png",
+      "bytes": 30577,
+      "sha256": "1cc1202b87fe5db00b2816efce8e7d3557db81d1dfe2f13b68c96041d8ca5b4a"
+    },
+    {
+      "path": "mecaplan/README.md",
+      "bytes": 10315,
+      "sha256": "031c7196ec23cd95697b8bef2495bfab91bac6f1438ef5b54f7c55a0370c8c7d"
+    },
+    {
+      "path": "mecaplan/referencias/Matriz_Gestion_Proyecto_Digit360.xlsx",
+      "bytes": 45035,
+      "sha256": "f2503817134fe7fe58445540cfbbd562e7fc0e3c4440fd3370c7848934c64045"
+    },
+    {
+      "path": "mecaplan/referencias/prompt-codex-gestor-proyectos.md",
+      "bytes": 22890,
+      "sha256": "381b16e59dfbd73310d66fc18dd00055977b59ec52ed12590e768e7fcc8eb5b4"
+    },
+    {
+      "path": "mecaplan/scripts/backup.mjs",
+      "bytes": 317,
+      "sha256": "dac9172636a8053cb808539f81fb49b2ae49a489ff138d5145704b1ef0712f6a"
+    },
+    {
+      "path": "mecaplan/scripts/connect-phase1b.mjs",
+      "bytes": 5196,
+      "sha256": "40861c20ee8d1c3873a660785bee50ba232e75abeb83eba29cf8ae36f9fd332f"
+    },
+    {
+      "path": "mecaplan/scripts/import-digit360.ts",
+      "bytes": 8303,
+      "sha256": "26e4d032455755057c9fa3e965435406b185deec87bee6a0a3990b313ec04646"
+    },
+    {
+      "path": "mecaplan/scripts/inspect-inputs.py",
+      "bytes": 1475,
+      "sha256": "122f83cb90ee0c5ff9ecab8f8d89709c3b5102d83f4633297217ff59207d79fe"
+    },
+    {
+      "path": "mecaplan/scripts/make-handoff.py",
+      "bytes": 11684,
+      "sha256": "47c300ee79be5f149a2688de4bc6809c57ea02dea0bac8e95aa480b189a842c9"
+    },
+    {
+      "path": "mecaplan/scripts/make-review.py",
+      "bytes": 11259,
+      "sha256": "8c510a4176a012326e6f2d241b214dc5115d17917f3e9565da4732e223febe06"
+    },
+    {
+      "path": "mecaplan/scripts/migrate-codes.ts",
+      "bytes": 1017,
+      "sha256": "f3082dc89a8fb161de86e076d61026525d0715177f6fa2d794f17426c6339723"
+    },
+    {
+      "path": "mecaplan/scripts/phase1b-demo.ts",
+      "bytes": 1987,
+      "sha256": "04465843e65e4bda121af4690406bb97a2be3e597530b96dd2eb52bf0a340479"
+    },
+    {
+      "path": "mecaplan/scripts/render-onedrive-guide.py",
+      "bytes": 2564,
+      "sha256": "339c8a97b88e5ddc8c60d98a77a70ee65716e56bb46d1b9c9f4037e61ec02a31"
+    },
+    {
+      "path": "mecaplan/scripts/seed.ts",
+      "bytes": 272,
+      "sha256": "16028edc0d11043b228047c50d6f663f458c39bf5d428091048401f6f1b32c54"
+    },
+    {
+      "path": "mecaplan/scripts/superuser.ts",
+      "bytes": 878,
+      "sha256": "17c5f805cd58ed9cebd8d46dfa9e8241ef9b4beea34c62af9ba93b00ffa26acd"
+    },
+    {
+      "path": "mecaplan/scripts/test-integration.ts",
+      "bytes": 12051,
+      "sha256": "647c9330448aa3b0eea3ee9e56beb089a725b4e244b7e063425e34206466312a"
+    },
+    {
+      "path": "mecaplan/scripts/test-webhook.ts",
+      "bytes": 3404,
+      "sha256": "5391c5ed5343b96bdb23e805a206f719d577536965c0b5c01d5fc3535680de59"
+    },
+    {
+      "path": "mecaplan/scripts/verify-import.ts",
+      "bytes": 2420,
+      "sha256": "d653065c6ba09f841172ace24e8d3551fe92a6fb0d0ff02c1a4ca3950416e733"
+    },
+    {
+      "path": "mecaplan/src/app/api/app/route.ts",
+      "bytes": 16749,
+      "sha256": "1b03819d4c7df876b287b70624a5b14d132c1666468cef4fdfd9f5151270c8d8"
+    },
+    {
+      "path": "mecaplan/src/app/api/evaluations/route.ts",
+      "bytes": 938,
+      "sha256": "382b625e68ccdbb0a507f4f9c9eba8b79a02f4b674c3fb262a1905cac5af71c0"
+    },
+    {
+      "path": "mecaplan/src/app/api/export/route.ts",
+      "bytes": 3333,
+      "sha256": "a9724604628cc9880c2f786f3f10bf34fdaa90e7acfa06e46773d10372c54c76"
+    },
+    {
+      "path": "mecaplan/src/app/api/files/[id]/route.ts",
+      "bytes": 1323,
+      "sha256": "8e46bccab032847454b18ffe84ad8f71b7e7a93d84d31c713777b4c0230ed68c"
+    },
+    {
+      "path": "mecaplan/src/app/api/files/route.ts",
+      "bytes": 2818,
+      "sha256": "a1d9215d85efea70f494df3d2140a4bb2ef72b018b340b87d8bfc5a44af19fbe"
+    },
+    {
+      "path": "mecaplan/src/app/api/github/webhook/route.ts",
+      "bytes": 3443,
+      "sha256": "3ef810e4f4682435d7b32e3da8ec7df19728fd44dba66feff46019c4c4c116a4"
+    },
+    {
+      "path": "mecaplan/src/app/api/import/route.ts",
+      "bytes": 3601,
+      "sha256": "e984258bc9601fb77699c45f25ad1675190a439bd033251766ecc9840ff62d43"
+    },
+    {
+      "path": "mecaplan/src/app/api/onedrive/callback/route.ts",
+      "bytes": 1138,
+      "sha256": "8dcc0fa67c6acb29fa00040385d880f55bda23d7c6d5bab7f2bee9b772062c15"
+    },
+    {
+      "path": "mecaplan/src/app/api/onedrive/route.ts",
+      "bytes": 2152,
+      "sha256": "e79d95e012103b6c7c6fcb2a1b9b6fd2768cbfc35d003e65af600f01f755aae9"
+    },
+    {
+      "path": "mecaplan/src/app/fonts.css",
+      "bytes": 1778,
+      "sha256": "b44714f35cd90d15938499f3a701928061b368bb753178cda8fdd7cf642d93b8"
+    },
+    {
+      "path": "mecaplan/src/app/globals.css",
+      "bytes": 34688,
+      "sha256": "501060b917e875002f63dda6de44eb063ae687ee0988d3d909330fb9629cbc68"
+    },
+    {
+      "path": "mecaplan/src/app/layout.tsx",
+      "bytes": 677,
+      "sha256": "61330a8f0bd02d4ddeb7e093bcf4fd7d3c2c7762c5ad2383cf534e10f506f659"
+    },
+    {
+      "path": "mecaplan/src/app/page.tsx",
+      "bytes": 50754,
+      "sha256": "ecdab885bbad124be5d1685abd57294755755dd1ce4876878c3bb8a9102f8cde"
+    },
+    {
+      "path": "mecaplan/src/app/phase1b.css",
+      "bytes": 19983,
+      "sha256": "71d83883cdcec2c76ceaed9edacf61521ee0d1b52e9802495f275dfd9c1bc47c"
+    },
+    {
+      "path": "mecaplan/src/app/unitec.css",
+      "bytes": 19582,
+      "sha256": "5151ab8be0770d5370c2c3d948cae1c2235b8cc9c1dd0e27b41fadb82748f952"
+    },
+    {
+      "path": "mecaplan/src/components/activity-extras.tsx",
+      "bytes": 6634,
+      "sha256": "d35fa5330d7fc334e932a3e502100152e56ff51fc5de2b350aa6e97890d62857"
+    },
+    {
+      "path": "mecaplan/src/components/import-diff.tsx",
+      "bytes": 2951,
+      "sha256": "595d4bd558c2f924c6eed315df7290cb1a2dc322e96cc10f8aa4c2ab108caca5"
+    },
+    {
+      "path": "mecaplan/src/components/import-panel.tsx",
+      "bytes": 6723,
+      "sha256": "5a48b51f00923c3da08dd0409eefa222a24725332f0bf7fd61c7ee3af9076183"
+    },
+    {
+      "path": "mecaplan/src/components/phase-panel.tsx",
+      "bytes": 46019,
+      "sha256": "5b431f5e0044c65be932549450d0640668120cce02ffe3e4f9b5238ee3949cf6"
+    },
+    {
+      "path": "mecaplan/src/components/planning-gantt.tsx",
+      "bytes": 3890,
+      "sha256": "b1b78f374b83307ec76753e8f5e0ad22df747f6371164ec1e218749568ea72c9"
+    },
+    {
+      "path": "mecaplan/src/components/progress-curve.tsx",
+      "bytes": 2915,
+      "sha256": "a678d8557bc44bf26659f470c64013844e74da245e91eb95612420d3a84c96f0"
+    },
+    {
+      "path": "mecaplan/src/components/project-tools.tsx",
+      "bytes": 4946,
+      "sha256": "1c94bdab65ff7c0fb2037311742e0c4d0fcf2f4861e978e7f3b994da433a7b9f"
+    },
+    {
+      "path": "mecaplan/src/components/risk-panel.tsx",
+      "bytes": 3666,
+      "sha256": "b2d037c657b224a6702fa6c5de75499b82567e7904e3ef924c9e8011abc8ef7a"
+    },
+    {
+      "path": "mecaplan/src/components/storage-panel.tsx",
+      "bytes": 7279,
+      "sha256": "895c00ab5665af5c709b3e3b5e8e54240841d9c740d3e65fd7e95fb4578e819c"
+    },
+    {
+      "path": "mecaplan/src/lib/agent-context.ts",
+      "bytes": 7638,
+      "sha256": "88297e9ec9bd10a6ead693d12eacd18c6cb604406b805545604beef413cf094b"
+    },
+    {
+      "path": "mecaplan/src/lib/codes.ts",
+      "bytes": 2053,
+      "sha256": "ed5565455cfb1e8ff80ddad39f81063515d8a50b4273ebd6acf6c81a7a0464e2"
+    },
+    {
+      "path": "mecaplan/src/lib/commits.ts",
+      "bytes": 737,
+      "sha256": "79f13aaa8ec67c524859a8eafa1449f47fa28a6d2c9f3bbafb0f6c0cebd5a65f"
+    },
+    {
+      "path": "mecaplan/src/lib/control.ts",
+      "bytes": 5258,
+      "sha256": "7466c3d04d66989f6010c4e113ae58c21d68ea00d17865c3f814b9b78b5b53c1"
+    },
+    {
+      "path": "mecaplan/src/lib/cpm.ts",
+      "bytes": 3132,
+      "sha256": "219f8360611fa412b3e94ce6ddaf2c0b0ec11d1222078ca0ed38a62f99ddf79f"
+    },
+    {
+      "path": "mecaplan/src/lib/domain.ts",
+      "bytes": 3736,
+      "sha256": "49c72130a4aa21ff91d4a25e4e815fc84807e6415e032dc7b698cf0de56cff80"
+    },
+    {
+      "path": "mecaplan/src/lib/import-format.ts",
+      "bytes": 1371,
+      "sha256": "b35da92ac777a986c99499c85725b19e6b7a5d2c70d9e5c27d69a9024a7309ec"
+    },
+    {
+      "path": "mecaplan/src/lib/model.ts",
+      "bytes": 27,
+      "sha256": "f19bbed1c929fac1810539fce065a88db8e30adc1181781a2dbdb8310b8390cd"
+    },
+    {
+      "path": "mecaplan/src/lib/onedrive-link.ts",
+      "bytes": 480,
+      "sha256": "56fae36b9b3b760269930b25c64af87f0b3979b002d6d6fced2e292fa4f10610"
+    },
+    {
+      "path": "mecaplan/src/lib/phase-schema.ts",
+      "bytes": 4923,
+      "sha256": "d69261e9d87d91ebc7b7f920421255996fd1c14e426fde646dea323662e82da7"
+    },
+    {
+      "path": "mecaplan/src/server/auth/index.ts",
+      "bytes": 1411,
+      "sha256": "7498121d6b2f2765c71be82b4d8525a2bc006b66f5ba1ed57b9f5942d87d7293"
+    },
+    {
+      "path": "mecaplan/src/server/auth/permissions.ts",
+      "bytes": 1286,
+      "sha256": "f0217eb93426e004c90e1ab9164037cd2ad0ede0fc3e0d3ea7cacec8dfecd06d"
+    },
+    {
+      "path": "mecaplan/src/server/control-service.ts",
+      "bytes": 14625,
+      "sha256": "7ee6b413ddd6126b2cf57aa55d98e1c1ed63c3382eac789d8ce17120360bf4ed"
+    },
+    {
+      "path": "mecaplan/src/server/excel-import.ts",
+      "bytes": 17193,
+      "sha256": "0b7ef951bc673ce70985209a89c01a6a93fbd9996fad362b7574c766fea9056f"
+    },
+    {
+      "path": "mecaplan/src/server/global-service.ts",
+      "bytes": 5825,
+      "sha256": "59eb1f4bab98f1e7fdbb5321ea64647a8d0f06eb8e8c3c7f9c29dc51d1bbbcdc"
+    },
+    {
+      "path": "mecaplan/src/server/onedrive.ts",
+      "bytes": 7942,
+      "sha256": "65c1f447580a384d8152b77d4bb5f5176ca5d2bfa623b9cd104cdf5c56a70d19"
+    },
+    {
+      "path": "mecaplan/src/server/project-access.ts",
+      "bytes": 500,
+      "sha256": "574307d5195e3f7dfcd6fdb9bb683174f529fdc5cde17ebc2386c94042dc8863"
+    },
+    {
+      "path": "mecaplan/src/server/repositories/database.ts",
+      "bytes": 3669,
+      "sha256": "2ff27124f6d6f4398ada93dfd3f21f789b6c7ac4021a45bfad98aa71442be93b"
+    },
+    {
+      "path": "mecaplan/src/server/repositories/demo.ts",
+      "bytes": 5369,
+      "sha256": "e03b28ea3816f13ea79183bfe40d4b1cfc8ddcfc76fbadbf58d30a2726793767"
+    },
+    {
+      "path": "mecaplan/src/server/repositories/index.ts",
+      "bytes": 1482,
+      "sha256": "fb7c0ebb67b89aa8f14a511dc1f74ba94f47a77267c37d5cfd97a4191005ec90"
+    },
+    {
+      "path": "mecaplan/src/server/request-origin.ts",
+      "bytes": 384,
+      "sha256": "2a4a91c734b2f7c1bc36fb2518231b73a6f26384884757f0860712fbdcc40570"
+    },
+    {
+      "path": "mecaplan/src/server/uploads.ts",
+      "bytes": 1593,
+      "sha256": "109aff643122b3415f62c3edcf7e6c3d78582409d47c4989f3bad4c12f34cf0e"
+    },
+    {
+      "path": "mecaplan/src/server/write-lock.ts",
+      "bytes": 256,
+      "sha256": "8f72268eff4fc470b552c751da352f408f74738da6dbce74da23130dc6c5e51e"
+    },
+    {
+      "path": "mecaplan/src/server/xlsx-compat.ts",
+      "bytes": 1506,
+      "sha256": "3a095efb9e1ec92f2a344df4146b8f921e88aeadbe03055d0098812a1e271833"
+    },
+    {
+      "path": "mecaplan/tests/e2e.spec.ts",
+      "bytes": 4977,
+      "sha256": "6f1b5bb5771232972ab7bc71168fd33d5e183f3ac5a6f048331dfafa8495d654"
+    },
+    {
+      "path": "mecaplan/tests/enhancements.test.ts",
+      "bytes": 9950,
+      "sha256": "c14aa382c4431cae52bd0d5423b7f8473efc9344d68a24dc139dfd084bf367aa"
+    },
+    {
+      "path": "mecaplan/tests/permissions.test.ts",
+      "bytes": 3968,
+      "sha256": "34883dbb772026cb165cc77a66a0ab9901f6c2af168401fb2a67332e4b617dfe"
+    },
+    {
+      "path": "mecaplan/tests/phase1b.test.ts",
+      "bytes": 6993,
+      "sha256": "a9448f51edc7c86b2052875aa30710bd8f0c11955f19f81a8fea751bcfb6ade7"
+    },
+    {
+      "path": "mecaplan/tsconfig.json",
+      "bytes": 849,
+      "sha256": "a192074b3930603e17c374bdd5b863a7ec6256b141337f26bd9350a5e83fd278"
+    },
+    {
+      "path": "mecaplan/vitest.config.ts",
+      "bytes": 224,
+      "sha256": "f7ea4118e42dd1af6ef2030cbbdf6cfbc54a53e3acb3e31995a34a975083d691"
+    },
+    {
+      "path": "PROMPT_ANALIZAR_MECAPLAN.md",
+      "bytes": 3657,
+      "sha256": "4f22fed48530d5b5ba4271be9ff7cb40bab17c2ff0e4aa0c98dd7ea5260cc8f8"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+data/**
+outputs/**
+work/**
+backups/**
+test-results/**
+playwright-report/**
+.next*/**
+.env*
+!.env.example
+!.env.vercel.example
+*.sqlite*
+*.tsbuildinfo
+referencias/*.xlsx

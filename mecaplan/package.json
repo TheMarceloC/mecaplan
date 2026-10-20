@@ -1,0 +1,63 @@
+{
+  "name": "mecaplan",
+  "version": "0.4.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1",
+    "build": "next build --webpack && node scripts/guard-build-artifacts.mjs",
+    "start": "next start --hostname 127.0.0.1",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "seed:demo": "tsx scripts/seed.ts",
+    "seed:superuser": "tsx scripts/superuser.ts",
+    "import:digit360": "tsx scripts/import-digit360.ts",
+    "test:integration": "tsx scripts/test-integration.ts",
+    "test:webhook": "tsx scripts/test-webhook.ts",
+    "migrate:codes": "tsx scripts/migrate-codes.ts",
+    "test:e2e": "playwright test",
+    "format:check": "prettier --check src tests scripts",
+    "format": "prettier --write src tests scripts",
+    "diagnose": "tsx scripts/diagnose.ts",
+    "backup": "tsx scripts/backup-installation.ts",
+    "verify": "node scripts/verify-release.mjs",
+    "test:security": "tsx scripts/test-security.ts",
+    "test:corrections": "tsx scripts/test-corrections.ts",
+    "cloud:setup": "tsx scripts/cloud-setup.ts",
+    "cloud:migrate": "tsx scripts/cloud-migrate.ts",
+    "cloud:check": "tsx scripts/cloud-check.ts",
+    "build:vercel": "pnpm run cloud:check --database && pnpm run build"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^7.1.0",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.0",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2",
+    "lucide-react": "^0.577.0",
+    "next": "^16.2.0",
+    "pg": "^8.23.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "yauzl": "^3.4.0",
+    "zod": "^4.3.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "@playwright/test": "^1.58.0",
+    "@tailwindcss/postcss": "^4.2.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/yauzl": "^3.4.0",
+    "prettier": "3.6.2",
+    "tailwindcss": "^4.2.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "packageManager": "pnpm@11.25.0"
+}

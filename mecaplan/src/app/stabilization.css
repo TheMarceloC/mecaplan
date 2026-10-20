@@ -1,0 +1,142 @@
+.setup-step {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.setup-step > span {
+  font-size: 24px;
+  color: #0f49b6;
+  flex: 0 0 30px;
+}
+.setup-step p,
+.interface-card p,
+.daily-focus p {
+  line-height: 1.8;
+  margin: 8px 0;
+  color: #4b5266;
+}
+.setup-task {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.setup-task > small {
+  display: block;
+  margin: 9px 0 16px;
+  color: #596174;
+}
+.setup-task form {
+  align-items: end;
+}
+.interface-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 22px 0;
+  padding: 22px;
+}
+.interface-card form > label {
+  margin: 15px 0;
+}
+.daily-focus {
+  margin-bottom: 24px;
+}
+.change-detail {
+  background: #f0f6fd;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.security-history pre,
+details pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.phase-area > .phase-area {
+  width: 100%;
+}
+.phase-modal form > label {
+  margin-bottom: 16px;
+}
+@media (max-width: 700px) {
+  .content {
+    font-size: 14px;
+  }
+  .activity-table .task-check {
+    min-width: 28px;
+    min-height: 28px;
+  }
+  .inline-edit {
+    min-width: 30px;
+    min-height: 30px;
+  }
+  .quick-filters button {
+    min-height: 36px;
+  }
+  .phase-table td,
+  .phase-entry p,
+  .phase-record p,
+  .form-note {
+    font-size: 12px !important;
+  }
+  .phase-entry {
+    flex-wrap: wrap;
+  }
+  .interface-card {
+    padding: 16px;
+  }
+  .setup-task form {
+    grid-template-columns: 1fr;
+  }
+  .topbar .icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .secondary,
+  .primary {
+    min-height: 40px;
+  }
+  .daily-focus p {
+    font-size: 13px;
+  }
+  .modal input,
+  .modal textarea,
+  .modal select {
+    font-size: 16px !important;
+  }
+  .setup-step p {
+    font-size: 13px;
+  }
+}
+@media print {
+  .sidebar,
+  .topbar,
+  .page-heading .heading-actions,
+  .page-footer,
+  .phase-actions,
+  .secondary,
+  .primary,
+  .text-btn {
+    display: none !important;
+  }
+  .main {
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  .content {
+    padding: 0 !important;
+  }
+  .panel {
+    break-inside: avoid;
+    border-color: #ddd !important;
+    box-shadow: none !important;
+  }
+  .phase-table {
+    font-size: 11px !important;
+  }
+  .phase-table-wrap {
+    overflow: visible !important;
+  }
+  body {
+    background: white !important;
+  }
+}
