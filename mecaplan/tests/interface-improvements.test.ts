@@ -5,9 +5,20 @@ import {
   endFromDuration,
   planning,
   scheduledCriticalIds,
+  startConflicts,
 } from "../src/lib/control";
 import { byCode } from "../src/lib/codes";
-import { projectSchema, activitySchema } from "../src/lib/model";
+import {
+  projectSchema,
+  activitySchema,
+  type PublicUser,
+} from "../src/lib/model";
+import { controlSchema } from "../src/lib/phase-schema";
+import {
+  describeImpact,
+  impactNeedsConfirmation,
+} from "../src/lib/plan-impact";
+import { mutateControl } from "../src/server/control-service";
 import { detectUpload } from "../src/server/uploads";
 
 const activity = (
@@ -129,5 +140,109 @@ describe("tipos de archivo admitidos", () => {
       detectUpload("firmware.ino", new Uint8Array([0, 1, 2])),
     ).toThrow();
     expect(() => detectUpload("informe.docx", code)).toThrow();
+  });
+});
+
+describe("aprobación de gastos", () => {
+  const user = (id: string): PublicUser => ({
+    id,
+    name: "Administrador " + id,
+    email: id + "@example.invalid",
+    globalRole: "user",
+    status: "active",
+  });
+  const withExpense = () => {
+    const p = project([activity("a1", "2026-10-19", "2026-10-23", 5)]);
+    p.members.push(
+      { id: "u", name: "Autora", teamId: "e", role: "admin", lead: true },
+      { id: "v", name: "Revisor", teamId: "e", role: "admin", lead: false },
+    );
+    p.control = controlSchema.parse({
+      expenses: [
+        {
+          id: "g",
+          teamId: "e",
+          amountCents: 125050,
+          date: "2026-10-20",
+          paidBy: "u",
+          description: "Silicona para la yema",
+        },
+      ],
+    });
+    return p;
+  };
+  it("quien registró el gasto no puede aprobarlo", async () => {
+    const p = withExpense();
+    await expect(
+      mutateControl(
+        "decideExpense",
+        { id: "g", status: "approved" },
+        p,
+        user("u"),
+      ),
+    ).rejects.toThrow(/registraste/);
+    expect(p.control!.expenses[0].status).toBe("pending");
+  });
+  it("otra persona con permiso sí puede aprobarlo", async () => {
+    const p = withExpense();
+    await mutateControl(
+      "decideExpense",
+      { id: "g", status: "approved" },
+      p,
+      user("v"),
+    );
+    expect(p.control!.expenses[0]).toMatchObject({
+      status: "approved",
+      decidedBy: "v",
+    });
+  });
+  it("quien lo registró puede rechazarlo para retirarlo", async () => {
+    const p = withExpense();
+    await mutateControl(
+      "decideExpense",
+      { id: "g", status: "rejected" },
+      p,
+      user("u"),
+    );
+    expect(p.control!.expenses[0].status).toBe("rejected");
+  });
+});
+
+describe("aviso de dependencias en el formulario", () => {
+  it("indica el primer inicio válido para el borrador", () => {
+    const p = project([activity("a1", "2026-10-19", "2026-10-23", 5)]);
+    const draft = activity("a2", "2026-10-21", "2026-10-27", 5, {
+      dependencies: ["a1"],
+    });
+    expect(startConflicts(p, draft)).toEqual([
+      { activityId: "a2", predecessorId: "a1", required: "2026-10-26" },
+    ]);
+    expect(startConflicts(p, { ...draft, start: "2026-10-26" })).toEqual([]);
+  });
+});
+
+describe("confirmación del impacto en la ruta crítica", () => {
+  const impact = (before: string, after: string, overflow = 0) => ({
+    before: { finish: before, overflowDays: 0 },
+    after: { finish: after, overflowDays: overflow },
+  });
+  it("no pide confirmar si el fin y el exceso no cambian", () => {
+    expect(impactNeedsConfirmation(impact("2026-11-13", "2026-11-13"))).toBe(
+      false,
+    );
+  });
+  it("pide confirmar si el fin se mueve o aparece exceso", () => {
+    expect(impactNeedsConfirmation(impact("2026-11-13", "2026-11-18"))).toBe(
+      true,
+    );
+    expect(impactNeedsConfirmation(impact("2026-11-13", "2026-11-13", 2))).toBe(
+      true,
+    );
+  });
+  it("explica el cambio con fechas legibles", () => {
+    const text = describeImpact(impact("2026-11-13", "2026-11-20", 3));
+    expect(text).toContain("13 nov 2026");
+    expect(text).toContain("20 nov 2026");
+    expect(text).toContain("3 días hábiles después de la fecha límite");
   });
 });

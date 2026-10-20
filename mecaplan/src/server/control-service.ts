@@ -292,6 +292,12 @@ export async function mutateControl(
       e = c.expenses.find((e) => e.id === d.id);
     if (!e || e.status !== "pending")
       throw Error("El gasto ya fue decidido o no existe.");
+    // Separación de funciones: quien registra un gasto no puede aprobarlo.
+    // Sí puede rechazarlo, por ejemplo para retirar un registro equivocado.
+    if (d.status === "approved" && e.paidBy === user.id)
+      throw Error(
+        "No puedes aprobar un gasto que registraste. Pide a otra persona con permiso de aprobación que lo revise.",
+      );
     const old = { ...e };
     e.status = d.status;
     e.decidedBy = user.id;

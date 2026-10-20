@@ -123,26 +123,29 @@ export function endFromDuration(
 export function durationBetween(start: string, end: string, workingDays = 5) {
   return end < start ? 0 : workingDaysInclusive(start, end, workingDays);
 }
+const scheduled = (a: Activity) =>
+  !a.deletedAt && !a.unscheduled && a.status !== "Cancelada";
 /**
- * Dependencias fin-inicio que las fechas guardadas no respetan: la sucesora
- * empieza antes del día hábil siguiente al fin de su predecesora más el desfase.
+ * Dependencias fin-inicio que la fecha de inicio de `a` no respeta: empieza antes
+ * del día hábil siguiente al fin de su predecesora más el desfase. `required` es
+ * el primer inicio válido. Sirve también para el borrador del formulario.
  */
+export function startConflicts(p: Project, a: Activity) {
+  if (!scheduled(a)) return [];
+  const days = control(p).workingDays;
+  return a.dependencies.flatMap((id) => {
+    const pred = p.activities.find((b) => b.id === id && scheduled(b)),
+      lag = a.dependencyLags?.[id] ?? 0;
+    if (!pred || lag < 0) return [];
+    const required = addWorkingDays(pred.end, 1 + lag, days);
+    return a.start < required
+      ? [{ activityId: a.id, predecessorId: pred.id, required }]
+      : [];
+  });
+}
+/** Todas las dependencias del proyecto que las fechas guardadas no respetan. */
 export function dependencyConflicts(p: Project) {
-  const days = control(p).workingDays,
-    active = p.activities.filter(
-      (a) => !a.deletedAt && !a.unscheduled && a.status !== "Cancelada",
-    );
-  return active.flatMap((a) =>
-    a.dependencies.flatMap((id) => {
-      const pred = active.find((b) => b.id === id),
-        lag = a.dependencyLags?.[id] ?? 0;
-      if (!pred || lag < 0) return [];
-      const required = addWorkingDays(pred.end, 1 + lag, days);
-      return a.start < required
-        ? [{ activityId: a.id, predecessorId: pred.id, required }]
-        : [];
-    }),
-  );
+  return p.activities.flatMap((a) => startConflicts(p, a));
 }
 export function reschedule(p: Project) {
   const plan = planning(p),

@@ -39,6 +39,7 @@ import {
   parseMoney,
   weeklyLoads,
   scheduledCriticalIds,
+  dependencyConflicts,
 } from "@/lib/control";
 import { byCode } from "@/lib/codes";
 import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
@@ -163,6 +164,8 @@ export function PhasePanel(props: Props) {
   const c = control(p),
     plan = planning(p),
     critical = scheduledCriticalIds(p),
+    conflicts = dependencyConflicts(p),
+    code = (id: string) => p.activities.find((a) => a.id === id)?.code ?? id,
     admin = can(user, "project:edit", p),
     person = (id: string) =>
       p.members.find((m) => m.id === id)?.name ?? "Sin asignar",
@@ -461,17 +464,26 @@ export function PhasePanel(props: Props) {
       setError(e instanceof Error ? e.message : "No se pudo guardar.");
     }
   }
-  const statusButtons = (name: string, id: string) =>
+  // ownerId: quien registró el elemento. No puede aprobarlo (el servidor también lo rechaza).
+  const statusButtons = (name: string, id: string, ownerId = "") =>
     admin && (
       <div className="phase-row-actions">
-        <button
-          className="secondary"
-          disabled={busy}
-          onClick={() => run(name, { id, status: "approved" }).catch(() => {})}
-        >
-          <Check size={14} />
-          Aprobar
-        </button>
+        {ownerId === user.id ? (
+          <small className="own-approval-note">
+            Lo registraste tú: debe aprobarlo otra persona.
+          </small>
+        ) : (
+          <button
+            className="secondary"
+            disabled={busy}
+            onClick={() =>
+              run(name, { id, status: "approved" }).catch(() => {})
+            }
+          >
+            <Check size={14} />
+            Aprobar
+          </button>
+        )}
         <button
           className="secondary danger"
           disabled={busy}
@@ -605,6 +617,28 @@ export function PhasePanel(props: Props) {
                 <strong>{plan.missingDates} actividades sin planificar.</strong>{" "}
                 Las fechas y duraciones CPM son provisionales. Confírmalas antes
                 de usarlas como compromiso.
+              </span>
+            </div>
+          )}
+          {conflicts.length > 0 && (
+            <div className="phase-warning" role="status">
+              <TriangleAlert size={18} />
+              <span>
+                <strong>
+                  {conflicts.length}{" "}
+                  {conflicts.length === 1
+                    ? "dependencia no se cumple"
+                    : "dependencias no se cumplen"}{" "}
+                  con las fechas actuales:
+                </strong>{" "}
+                {conflicts
+                  .map(
+                    (k) =>
+                      `${code(k.activityId)} empieza antes de que termine ${code(k.predecessorId)}`,
+                  )
+                  .join("; ")}
+                . Ajusta sus fechas en la actividad o usa Planificar para
+                recalcularlas.
               </span>
             </div>
           )}
@@ -1066,7 +1100,7 @@ export function PhasePanel(props: Props) {
                         </button>
                       )}
                     {e.status === "pending" &&
-                      statusButtons("decideExpense", e.id)}
+                      statusButtons("decideExpense", e.id, e.paidBy)}
                   </article>
                 ))}
               </>

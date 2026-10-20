@@ -20,7 +20,10 @@ import {
   scheduledCriticalIds,
   endFromDuration,
   durationBetween,
+  startConflicts,
 } from "@/lib/control";
+import { impactNeedsConfirmation, type PlanImpact } from "@/lib/plan-impact";
+import { ImpactConfirm } from "@/components/impact-confirm";
 import { byCode, normalizeText } from "@/lib/codes";
 import {
   useEffect,
@@ -2159,9 +2162,11 @@ export default function App() {
           user={user}
           busy={busy}
           close={() => setModal(null)}
-          save={async (a) => {
-            if (selected && selected.duration !== a.duration) {
-              const impact = await action("previewPlan", {
+          save={async (a, confirmed = false) => {
+            // Solo se pide confirmar si cambiar la duración mueve el fin del
+            // proyecto o aumenta el exceso; la confirmación la muestra el formulario.
+            if (!confirmed && selected && selected.duration !== a.duration) {
+              const impact: PlanImpact = await action("previewPlan", {
                 activities: [
                   {
                     id: a.id,
@@ -2171,12 +2176,7 @@ export default function App() {
                   },
                 ],
               });
-              if (
-                !window.confirm(
-                  `Fin por ruta crítica: ${impact.before.finish} → ${impact.after.finish}. Exceso: ${impact.after.overflowDays} días hábiles. ¿Guardar el cambio?`,
-                )
-              )
-                return;
+              if (impactNeedsConfirmation(impact)) return impact;
             }
             await action("saveActivity", a);
             setModal(null);
@@ -2429,7 +2429,8 @@ function ActivityEditor({
   user: PublicUser;
   busy: boolean;
   close: () => void;
-  save: (a: Activity) => Promise<void>;
+  /** Devuelve el impacto si el cambio mueve el fin del proyecto y falta confirmarlo. */
+  save: (a: Activity, confirmed?: boolean) => Promise<PlanImpact | void>;
   comment: (id: string, body: string) => Promise<void>;
   status: (
     a: Activity,
@@ -2464,9 +2465,28 @@ function ActivityEditor({
     ),
     [note, setNote] = useState(""),
     [localError, setLocalError] = useState(""),
-    [raciQuery, setRaciQuery] = useState("");
+    [raciQuery, setRaciQuery] = useState(""),
+    [pendingImpact, setPendingImpact] = useState<PlanImpact | null>(null);
+  // Cualquier edición invalida una confirmación pendiente: hay que volver a calcular el impacto.
+  useEffect(() => setPendingImpact(null), [draft]);
   const edit = can(user, "activity:edit", project, draft),
     workingDays = control(project).workingDays;
+  const conflicts = startConflicts(project, draft),
+    earliestStart = conflicts
+      .map((k) => k.required)
+      .sort()
+      .at(-1),
+    activityCode = (id: string) =>
+      project.activities.find((a) => a.id === id)?.code ?? id;
+  async function submit(confirmed = false) {
+    setLocalError("");
+    try {
+      const impact = await save(draft, confirmed);
+      if (impact) setPendingImpact(impact);
+    } catch (e) {
+      setLocalError(e instanceof Error ? e.message : "No se pudo guardar.");
+    }
+  }
   const patch = <K extends keyof Activity>(k: K, v: Activity[K]) =>
     setDraft((a) => ({ ...a, [k]: v }));
   // Inicio + duración definen la entrega; si se edita la entrega, se recalcula la duración.
@@ -2510,13 +2530,7 @@ function ActivityEditor({
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          try {
-            await save(draft);
-          } catch (e) {
-            setLocalError(
-              e instanceof Error ? e.message : "No se pudo guardar.",
-            );
-          }
+          await submit();
         }}
       >
         <label>
@@ -2642,6 +2656,24 @@ function ActivityEditor({
             duración.
           </p>
         )}
+        {edit && earliestStart && (
+          <div className="dependency-warning" role="status">
+            <TriangleAlert size={16} aria-hidden="true" />
+            <span>
+              Empieza antes de que termine{" "}
+              {conflicts.map((k) => activityCode(k.predecessorId)).join(", ")}.
+              Según sus dependencias, puede empezar desde el{" "}
+              {date(earliestStart)}.
+            </span>
+            <button
+              type="button"
+              className="text-btn"
+              onClick={() => changeStart(earliestStart)}
+            >
+              Mover inicio al {date(earliestStart)}
+            </button>
+          </div>
+        )}
         {draft.status === "Bloqueada" && (
           <label>
             Motivo del bloqueo
@@ -2752,6 +2784,14 @@ function ActivityEditor({
           <p className="form-error" role="alert">
             {localError}
           </p>
+        )}
+        {pendingImpact && (
+          <ImpactConfirm
+            impact={pendingImpact}
+            busy={busy}
+            confirm={() => submit(true)}
+            cancel={() => setPendingImpact(null)}
+          />
         )}
         <div className="modal-actions">
           {edit && activity && (

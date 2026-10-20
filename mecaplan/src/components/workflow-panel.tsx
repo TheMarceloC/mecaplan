@@ -1,6 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import {
+  type Activity,
   type Project,
   type PublicUser,
   leafActivities,
@@ -10,7 +11,9 @@ import {
 } from "@/lib/model";
 import { control, planning } from "@/lib/control";
 import { addWorkingDays } from "@/lib/cpm";
+import { impactNeedsConfirmation, type PlanImpact } from "@/lib/plan-impact";
 import { can } from "@/server/auth/permissions";
+import { ImpactConfirm } from "./impact-confirm";
 
 type Props = {
   kind: "setup" | "interfaces" | "weekly";
@@ -24,7 +27,12 @@ export function WorkflowPanel({ kind, project: p, user, busy, action }: Props) {
     leaves = leafActivities(p),
     plan = planning(p),
     [error, setError] = useState(""),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    // Planificación que mueve el fin del proyecto y espera confirmación en la fila.
+    [pendingPlan, setPendingPlan] = useState<{
+      impact: PlanImpact;
+      activity: Activity;
+    } | null>(null);
   const name = (id: string) =>
       p.members.find((m) => m.id === id)?.name ?? "Sin asignar",
     team = (id: string) =>
@@ -148,26 +156,9 @@ export function WorkflowPanel({ kind, project: p, user, busy, action }: Props) {
                       duration = Number(f.get("duration")),
                       start = String(f.get("start")),
                       effort = f.get("effort");
+                    setPendingPlan(null);
                     try {
-                      if (duration !== a.duration) {
-                        const result = await action("previewPlan", {
-                          activities: [
-                            {
-                              id: a.id,
-                              duration,
-                              dependencies: a.dependencies,
-                              dependencyLags: a.dependencyLags ?? {},
-                            },
-                          ],
-                        });
-                        if (
-                          !window.confirm(
-                            `Fin por ruta crítica: ${result.before.finish} → ${result.after.finish}. ¿Guardar esta duración?`,
-                          )
-                        )
-                          return;
-                      }
-                      await run("saveActivity", {
+                      const next: Activity = {
                         ...a,
                         duration,
                         start,
@@ -178,7 +169,24 @@ export function WorkflowPanel({ kind, project: p, user, busy, action }: Props) {
                         ),
                         unscheduled: false,
                         effortDays: effort === "" ? undefined : Number(effort),
-                      });
+                      };
+                      if (duration !== a.duration) {
+                        const impact: PlanImpact = await action("previewPlan", {
+                          activities: [
+                            {
+                              id: a.id,
+                              duration,
+                              dependencies: a.dependencies,
+                              dependencyLags: a.dependencyLags ?? {},
+                            },
+                          ],
+                        });
+                        if (impactNeedsConfirmation(impact)) {
+                          setPendingPlan({ impact, activity: next });
+                          return;
+                        }
+                      }
+                      await run("saveActivity", next);
                     } catch (e) {
                       setError(
                         e instanceof Error
@@ -224,6 +232,18 @@ export function WorkflowPanel({ kind, project: p, user, busy, action }: Props) {
                     Confirmar planificación
                   </button>
                 </form>
+              )}
+              {pendingPlan?.activity.id === a.id && (
+                <ImpactConfirm
+                  impact={pendingPlan.impact}
+                  busy={busy}
+                  confirm={() => {
+                    const next = pendingPlan.activity;
+                    setPendingPlan(null);
+                    run("saveActivity", next);
+                  }}
+                  cancel={() => setPendingPlan(null)}
+                />
               )}
             </article>
           ))}

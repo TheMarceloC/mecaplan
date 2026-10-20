@@ -129,9 +129,6 @@
   color: #c2410c;
   font-weight: 600;
 }
-.gantt-conflicts {
-  margin-bottom: 14px;
-}
 
 /* RACI: buscador y personas agrupadas por equipo. */
 .raci-search {
@@ -169,4 +166,79 @@
 }
 .plain-fieldset:disabled {
   opacity: 0.6;
+}
+
+/* Gastos: quien registró un gasto ve por qué no tiene el botón Aprobar. */
+.own-approval-note {
+  font-size: 11px;
+  color: #6b7488;
+  max-width: 190px;
+}
+
+/* Confirmación dentro de la app cuando un cambio mueve el fin del proyecto. */
+.impact-confirm {
+  border: 1px solid #f5c26b;
+  background: #fff8e6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  display: grid;
+  gap: 10px;
+}
+.impact-confirm p {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: 12px;
+  color: #6b4a07;
+  line-height: 1.6;
+}
+.impact-confirm p svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.impact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Formulario de actividad: la fecha de inicio no respeta una dependencia. */
+.dependency-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.dependency-warning span {
+  flex: 1 1 220px;
+}
+.dependency-warning .text-btn {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Celular: formularios en una columna y acciones siempre visibles al final del diálogo. */
+@media (max-width: 700px) {
+  .modal .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .modal .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: #fff;
+    border-top: 1px solid #eceef4;
+    margin: 0 -17px;
+    padding: 12px 17px;
+  }
 }

@@ -48,22 +48,7 @@ export function PlanningGantt({
       p.members.find((m) => m.id === id)?.name ?? "Sin asignar";
   return (
     <section className="panel phase-gantt">
-      {conflicts.length > 0 && (
-        <div className="phase-warning gantt-conflicts" role="status">
-          <TriangleAlert size={18} />
-          <span>
-            <strong>
-              {conflicts.length}{" "}
-              {conflicts.length === 1
-                ? "dependencia no se cumple"
-                : "dependencias no se cumplen"}{" "}
-              con las fechas actuales.
-            </strong>{" "}
-            Una actividad empieza antes de que termine la actividad de la que
-            depende. Revisa las filas marcadas o ajusta las fechas.
-          </span>
-        </div>
-      )}
+      {/* El resumen de dependencias rotas está arriba del Cronograma; aquí solo se marcan las filas. */}
       <div className="gantt-inner">
         <div
           className="gantt-content"
