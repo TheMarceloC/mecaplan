@@ -179,6 +179,12 @@ export default function App() {
     [view, setView] = useState<View>("overview"),
     [projectId, setProjectId] = useState(""),
     [toast, setToast] = useState(""),
+    // Acción opcional del aviso; solo se muestra mientras el aviso tenga ese mismo texto.
+    [toastAction, setToastAction] = useState<{
+      message: string;
+      label: string;
+      run: () => void;
+    } | null>(null),
     [modal, setModal] = useState<
       "activity" | "settings" | "project" | "filters" | null
     >(null),
@@ -259,10 +265,14 @@ export default function App() {
   }, [filter]);
   useEffect(() => {
     if (toast) {
-      const timer = setTimeout(() => setToast(""), 5000);
+      // Con "Deshacer" el aviso dura más, para dar tiempo a reaccionar.
+      const timer = setTimeout(
+        () => setToast(""),
+        toastAction?.message === toast ? 8000 : 5000,
+      );
       return () => clearTimeout(timer);
     }
-  }, [toast]);
+  }, [toast, toastAction]);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [payload?.user?.id, view, projectId]);
@@ -309,9 +319,26 @@ export default function App() {
       openActivity({ ...a, status: value });
       return;
     }
+    // Un "Deshacer" anterior ya no corresponde a este nuevo cambio.
+    setToastAction(null);
     await action("status", { id: a.id, status: value, reason: reason ?? "" })
       .then(() => setToast("Estado actualizado."))
       .catch(() => {});
+  }
+  // Cambio de estado de un clic (casilla de la tabla o arrastre en el tablero):
+  // el aviso ofrece volver al estado anterior por si fue un clic accidental.
+  async function quickStatus(a: Activity, value: Activity["status"]) {
+    const previous = a.status,
+      reason = a.blockedReason;
+    await status(a, value);
+    setToastAction({
+      message: "Estado actualizado.",
+      label: "Deshacer",
+      run: () => {
+        setToastAction(null);
+        status({ ...a, status: value }, previous, reason).catch(() => {});
+      },
+    });
   }
   if (!payload)
     return (
@@ -1407,7 +1434,8 @@ export default function App() {
                   {filtered && (
                     <div className="filter-summary">
                       <span>
-                        {visible.length} resultados
+                        {visible.length}{" "}
+                        {visible.length === 1 ? "resultado" : "resultados"}
                         {filter.team &&
                           ` · ${project.teams.find((t) => t.id === filter.team)?.name}`}
                       </span>
@@ -1451,7 +1479,7 @@ export default function App() {
                                 (a) =>
                                   a.id === e.dataTransfer.getData("text/plain"),
                               );
-                              if (a) status(a, s);
+                              if (a && a.status !== s) quickStatus(a, s);
                             }}
                           >
                             <header>
@@ -1613,7 +1641,7 @@ export default function App() {
                                       !can(user, "activity:status", project, a)
                                     }
                                     onClick={() =>
-                                      status(
+                                      quickStatus(
                                         a,
                                         a.status === "Hecha"
                                           ? "Pendiente"
@@ -2325,7 +2353,8 @@ export default function App() {
               Limpiar filtros
             </button>
             <button className="primary" onClick={() => setModal(null)}>
-              Ver {visible.length} resultados
+              Ver {visible.length}{" "}
+              {visible.length === 1 ? "resultado" : "resultados"}
             </button>
           </div>
         </Modal>
@@ -2396,7 +2425,18 @@ export default function App() {
       {toast && (
         <div className="toast" role="status">
           <span>{toast}</span>
-          <button aria-label="Cerrar aviso" onClick={() => setToast("")}>
+          {toastAction?.message === toast && (
+            <button className="toast-action" onClick={toastAction.run}>
+              {toastAction.label}
+            </button>
+          )}
+          <button
+            aria-label="Cerrar aviso"
+            onClick={() => {
+              setToast("");
+              setToastAction(null);
+            }}
+          >
             <X size={16} />
           </button>
         </div>

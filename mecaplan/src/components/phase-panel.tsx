@@ -43,6 +43,12 @@ import {
 } from "@/lib/control";
 import { byCode } from "@/lib/codes";
 import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
+import {
+  impactLabels,
+  probabilityLabels,
+  scaleOptions,
+} from "@/lib/risk-scale";
+import { withProtocol } from "@/lib/url";
 import { workingDayDistance } from "@/lib/cpm";
 import { can } from "@/server/auth/permissions";
 import { RiskPanel } from "./risk-panel";
@@ -306,7 +312,7 @@ export function PhasePanel(props: Props) {
           quantity: num("quantity"),
           unitPriceCents: parseMoney(get("price")),
           supplier: get("supplier"),
-          url: get("url"),
+          url: withProtocol(get("url")),
           notes: get("notes"),
           isBom: f.get("isBom") === "on",
         });
@@ -1872,8 +1878,9 @@ export function PhasePanel(props: Props) {
             }}
           />
           <p className="form-note">
-            FS: la sucesora empieza después de terminar la predecesora. Desfase
-            en días hábiles; un valor negativo permite adelanto.
+            Fin a inicio: la sucesora empieza después de terminar la
+            predecesora. Desfase en días hábiles; un valor negativo permite
+            adelanto.
           </p>
           {error && (
             <p role="alert" className="form-error">
@@ -2032,11 +2039,12 @@ export function PhasePanel(props: Props) {
                       false,
                     )}
                   </div>
+                  {/* Texto y no "url": se acepta el enlace sin https:// y se completa al guardar. */}
                   {field(
                     "url",
                     "Enlace del proveedor",
                     dialog.value?.url,
-                    "url",
+                    "text",
                     false,
                   )}
                   <label>
@@ -2141,19 +2149,13 @@ export function PhasePanel(props: Props) {
                     {select(
                       "probability",
                       "Probabilidad",
-                      [1, 2, 3, 4, 5].map((i) => ({
-                        value: String(i),
-                        label: String(i),
-                      })),
+                      scaleOptions(probabilityLabels),
                       String(dialog.value?.probability ?? 3),
                     )}
                     {select(
                       "impact",
                       "Impacto",
-                      [1, 2, 3, 4, 5].map((i) => ({
-                        value: String(i),
-                        label: String(i),
-                      })),
+                      scaleOptions(impactLabels),
                       String(dialog.value?.impact ?? 3),
                     )}
                     {select(
@@ -2632,7 +2634,7 @@ function PlanEditor({
         />
       </label>
       <fieldset>
-        <legend>Actividades predecesoras · Finish to Start</legend>
+        <legend>Actividades predecesoras · fin a inicio</legend>
         <div className="dependency-list">
           {p.activities
             .filter(
@@ -2641,6 +2643,7 @@ function PlanEditor({
                 b.id !== a.id &&
                 !p.activities.some((x) => !x.deletedAt && x.parentId === b.id),
             )
+            .sort(byCode)
             .map((b) => (
               <div className="dependency-option" key={b.id}>
                 <label className="checkbox-label">
@@ -2692,6 +2695,13 @@ function PlanEditor({
             Ruta crítica: {preview.after.duration} días hábiles · Exceso:{" "}
             {preview.after.overflowDays} días.
           </p>
+          {Array.isArray(preview.moved) && (
+            <p className={preview.moved.length ? "plan-moved" : ""}>
+              {preview.moved.length
+                ? `Al confirmar cambian las fechas de ${preview.moved.length} ${preview.moved.length === 1 ? "actividad" : "actividades"}: ${preview.moved.slice(0, 8).join(", ")}${preview.moved.length > 8 ? ` y ${preview.moved.length - 8} más` : ""}.`
+                : "Al confirmar no cambia la fecha de ninguna otra actividad."}
+            </p>
+          )}
         </div>
       )}
       <p className="form-note">
@@ -2714,7 +2724,9 @@ function PlanEditor({
           }
           onClick={() => save().catch(() => {})}
         >
-          Confirmar y aplicar plan
+          {preview?.moved?.length
+            ? `Confirmar y mover ${preview.moved.length} ${preview.moved.length === 1 ? "actividad" : "actividades"}`
+            : "Confirmar y aplicar plan"}
         </button>
       </div>
     </>

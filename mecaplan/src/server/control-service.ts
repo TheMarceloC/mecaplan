@@ -213,8 +213,25 @@ export async function mutateControl(
       Object.assign(a, patch);
     }
     const after = planning(proposed);
-    if (action === "previewPlan")
-      return { handled: true, save: false, result: { before, after } };
+    if (action === "previewPlan") {
+      // Si quien planifica puede aplicar fechas, savePlan recalcula todas las
+      // hojas: se informa antes qué actividades cambiarían (fechas o provisional).
+      const rescheduled = structuredClone(proposed);
+      if (can(user, "project:edit", p)) reschedule(rescheduled);
+      const moved = rescheduled.activities
+        .filter((a) => {
+          const old = p.activities.find((b) => b.id === a.id);
+          return (
+            old &&
+            !a.deletedAt &&
+            (old.start !== a.start ||
+              old.end !== a.end ||
+              !!old.unscheduled !== !!a.unscheduled)
+          );
+        })
+        .map((a) => a.code);
+      return { handled: true, save: false, result: { before, after, moved } };
+    }
     if (d.applyDates) {
       require("project:edit");
       reschedule(proposed);

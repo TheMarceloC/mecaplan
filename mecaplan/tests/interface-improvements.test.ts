@@ -3,6 +3,7 @@ import {
   dependencyConflicts,
   durationBetween,
   endFromDuration,
+  parseMoney,
   planning,
   scheduledCriticalIds,
   startConflicts,
@@ -19,6 +20,12 @@ import {
   impactNeedsConfirmation,
 } from "../src/lib/plan-impact";
 import { mutateControl } from "../src/server/control-service";
+import {
+  impactLabels,
+  probabilityLabels,
+  scaleOptions,
+} from "../src/lib/risk-scale";
+import { withProtocol } from "../src/lib/url";
 import { detectUpload } from "../src/server/uploads";
 
 const activity = (
@@ -244,5 +251,73 @@ describe("confirmación del impacto en la ruta crítica", () => {
     expect(text).toContain("13 nov 2026");
     expect(text).toContain("20 nov 2026");
     expect(text).toContain("3 días hábiles después de la fecha límite");
+  });
+});
+
+describe("importes escritos como en la app", () => {
+  it("acepta separador de miles con coma y el prefijo L", () => {
+    expect(parseMoney("1,250.50")).toBe(125050);
+    expect(parseMoney("L 1,250.50")).toBe(125050);
+    expect(parseMoney("1,250")).toBe(125000);
+    expect(parseMoney("12,345,678.90")).toBe(1234567890);
+  });
+  it("acepta miles con punto solo cuando hay decimales con coma", () => {
+    expect(parseMoney("1.250,50")).toBe(125050);
+    expect(parseMoney("120,05")).toBe(12005);
+    expect(() => parseMoney("1.999")).toThrow(/1250\.50 o 1,250\.50/);
+  });
+  it("rechaza grupos de miles mal formados", () => {
+    expect(() => parseMoney("1,25,0")).toThrow();
+    expect(() => parseMoney("1,2345")).toThrow();
+  });
+});
+
+describe("enlaces y escala de riesgos", () => {
+  it("completa https:// en enlaces pegados sin protocolo", () => {
+    expect(withProtocol("tienda.com/silicona")).toBe(
+      "https://tienda.com/silicona",
+    );
+    expect(withProtocol(" https://tienda.com ")).toBe("https://tienda.com");
+    expect(withProtocol("")).toBe("");
+  });
+  it("describe cada valor de probabilidad e impacto", () => {
+    expect(scaleOptions(probabilityLabels)[2]).toEqual({
+      value: "3",
+      label: "3 · Media",
+    });
+    expect(impactLabels[5]).toBe("Crítico");
+  });
+});
+
+describe("vista previa de planificación", () => {
+  const superuser: PublicUser = {
+    id: "s",
+    name: "Superusuario",
+    email: "s@example.invalid",
+    globalRole: "superuser",
+    status: "active",
+  };
+  const fixture = () =>
+    project([
+      activity("a1", "2026-10-19", "2026-10-23", 5),
+      activity("a2", "2026-10-19", "2026-10-23", 5),
+    ]);
+  const patch = {
+    activities: [
+      { id: "a2", duration: 5, dependencies: ["a1"], dependencyLags: {} },
+    ],
+  };
+  it("informa qué actividades cambiarán de fecha al confirmar", async () => {
+    const p = fixture();
+    const r = await mutateControl("previewPlan", patch, p, superuser);
+    expect((r.result as { moved: string[] }).moved).toEqual(["ELE-002"]);
+    expect(p.activities[1].start).toBe("2026-10-19");
+  });
+  it("sin permiso para aplicar fechas no anuncia cambios", async () => {
+    const p = fixture();
+    const member: PublicUser = { ...superuser, id: "m", globalRole: "user" };
+    p.members[0].lead = true;
+    const r = await mutateControl("previewPlan", patch, p, member);
+    expect((r.result as { moved: string[] }).moved).toEqual([]);
   });
 });

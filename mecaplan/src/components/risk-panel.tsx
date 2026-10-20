@@ -1,10 +1,16 @@
 "use client";
 import { useState } from "react";
 import { Plus, TriangleAlert } from "lucide-react";
-import { type Project, type PublicUser } from "@/lib/model";
+import { type Project, type PublicUser, today } from "@/lib/model";
 import { control } from "@/lib/control";
+import { impactLabels, probabilityLabels } from "@/lib/risk-scale";
 import { can } from "@/server/auth/permissions";
 type Risk = ReturnType<typeof control>["risks"][number];
+const shortDate = (v: string) =>
+  new Date(v + "T12:00:00").toLocaleDateString("es-GT", {
+    day: "numeric",
+    month: "short",
+  });
 export function RiskPanel({
   project: p,
   user,
@@ -69,7 +75,7 @@ export function RiskPanel({
                       selection?.probability === probability &&
                       selection.impact === impact
                     }
-                    aria-label={`Probabilidad ${probability}, impacto ${impact}: ${group.length} riesgos abiertos`}
+                    aria-label={`Probabilidad ${probability} (${probabilityLabels[probability]}), impacto ${impact} (${impactLabels[impact]}): ${group.length} ${group.length === 1 ? "riesgo abierto" : "riesgos abiertos"}`}
                     title={
                       group
                         .map((r) => r.code + " · " + r.description)
@@ -150,10 +156,30 @@ export function RiskPanel({
                       <strong>Mitigación:</strong>{" "}
                       {r.mitigation || "Por definir"}
                     </p>
+                    {(r.nextAction || r.dueDate) && (
+                      <p
+                        className={
+                          r.status === "open" &&
+                          r.dueDate &&
+                          r.dueDate < today()
+                            ? "risk-next overdue"
+                            : "risk-next"
+                        }
+                      >
+                        <strong>Próxima acción:</strong>{" "}
+                        {r.nextAction || "Por definir"}
+                        {r.dueDate && ` · ${shortDate(r.dueDate)}`}
+                        {r.status === "open" &&
+                          r.dueDate &&
+                          r.dueDate < today() &&
+                          " · vencida"}
+                      </p>
+                    )}
                     <small>
                       {p.members.find((m) => m.id === r.ownerId)?.name ??
                         "Sin responsable"}{" "}
-                      · P{r.probability} × I{r.impact} ={" "}
+                      · Probabilidad {probabilityLabels[r.probability]} ×
+                      impacto {impactLabels[r.impact]} ={" "}
                       {r.probability * r.impact}/25
                     </small>
                   </div>

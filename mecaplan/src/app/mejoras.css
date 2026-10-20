@@ -242,3 +242,33 @@
     padding: 12px 17px;
   }
 }
+
+/* Aviso con "Deshacer" tras un cambio de estado de un clic. */
+.toast .toast-action {
+  background: none;
+  border: 1px solid #ffffff80;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.toast .toast-action:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Riesgos: próxima acción visible en la lista; en rojo si ya venció. */
+.risk-next {
+  font-size: 12px;
+}
+.risk-next.overdue {
+  color: #b73242;
+}
+
+/* Planificación: cuántas actividades cambian de fecha al confirmar. */
+.plan-moved {
+  color: #8b5f0b;
+  font-weight: 600;
+}

@@ -205,10 +205,28 @@ export function csv(rows: (string | number)[][]) {
       .join("\r\n")
   );
 }
+/**
+ * Convierte un importe escrito por una persona a centavos. Acepta el formato
+ * que muestra la app ("L 1,250.50"), decimales con punto o coma ("120,05") y
+ * miles con punto solo si llevan decimales con coma ("1.250,50"). "1.999" se
+ * rechaza porque podría ser 1999 o 1.999.
+ */
 export function parseMoney(value: string) {
-  const clean = value.trim().replace(",", ".");
-  if (!/^\d+(\.\d{1,2})?$/.test(clean))
-    throw Error("Escribe un importe positivo con hasta dos decimales.");
+  const raw = value
+    .trim()
+    .replace(/^(HNL|L)\s*/i, "")
+    .replace(/\s/g, "");
+  const clean = /^\d+([.,]\d{1,2})?$/.test(raw)
+    ? raw.replace(",", ".")
+    : /^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(raw)
+      ? raw.replaceAll(",", "")
+      : /^\d{1,3}(\.\d{3})+,\d{1,2}$/.test(raw)
+        ? raw.replaceAll(".", "").replace(",", ".")
+        : "";
+  if (!clean)
+    throw Error(
+      "Escribe un importe positivo con hasta dos decimales, por ejemplo 1250.50 o 1,250.50.",
+    );
   const [whole, decimal = ""] = clean.split(".");
   const cents = Number(whole) * 100 + Number(decimal.padEnd(2, "0"));
   if (!Number.isSafeInteger(cents))
