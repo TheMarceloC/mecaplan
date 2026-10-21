@@ -49,11 +49,34 @@ python receptor.py --serial COM5
 
 El receptor no cambia: lo único distinto es de dónde vienen los bytes.
 
+## Grabar sesiones
+
+Para guardar los datos (y usarlos después en la IA), agrega `--guardar`:
+
+```bash
+python receptor.py --guardar
+python receptor.py --serial COM5 --guardar
+```
+
+Mientras ves las gráficas, se graba todo. **Cierra la ventana para terminar la
+sesión.** Cada sesión queda en su propia carpeta:
+
+```
+data/sesiones/AAAAmmdd-HHMMSS/
+    presion.csv   ts_ms, presion_kpa, temp_c
+    imu.csv       ts_ms, ax, ay, az, gx, gy, gz
+    audio.wav     micrófono (16 bits, mono, 16 kHz)
+    meta.json     duración y conteos de la sesión
+```
+
+La carpeta `data/` está en el `.gitignore`: las grabaciones no se suben al repo.
+
 ## Por dónde seguir
 
-- **Guardar sesiones**: en `hilo_lectura` de `receptor.py`, además de graficar,
-  escribir los datos a un archivo (CSV o `.npz`) para después entrenar la IA.
 - **Cámara**: agregar un script aparte con OpenCV (`cv2.VideoCapture`) para la
-  parte de visión; no depende de la placa.
+  parte de visión; no depende de la placa. Luego grabar también el video en la
+  carpeta de la sesión, para tener imagen + presión + audio juntos.
 - **Firmware real**: reemplazar los valores de prueba por las lecturas de los
   sensores (presión por I2C, IMU por I2C, micrófono por I2S).
+- **Entrenar la IA**: leer las carpetas de `data/sesiones/` para clasificar
+  materiales o tipos de contacto.
