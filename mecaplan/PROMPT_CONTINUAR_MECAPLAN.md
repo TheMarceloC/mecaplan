@@ -1,6 +1,6 @@
 # Continuidad — MecaPlan 0.4.0
 
-La petición vigente añade Tablero Kanban al menú principal y prepara Vercel + Supabase. El usuario confirmó OneDrive para documentos mediante enlaces manuales, sin OAuth. El responsable creó Supabase y ya se migraron 27 usuarios y 4 proyectos con verificación de contenido y TLS. Falta GitHub y Vercel; no se ha publicado un dominio.
+La aplicación está publicada en https://mecaplan-mecaplan.vercel.app/ desde GitHub, rama de producción codex/vercel-supabase. El usuario confirmó OneDrive para documentos mediante enlaces manuales, sin OAuth. El responsable creó Supabase y ya se migraron 27 usuarios y 4 proyectos con verificación de contenido y TLS. No repetir esa migración. La petición vigente integra los tres commits de mejoras-interfaz: 4524858, b02ae5f y 007adea. Sus 106 pruebas unitarias pasaron y Vercel confirmó Ready para el código completo 007adea.
 
 Lee AGENTS.md, README.md, docs/ESTADO_ENTREGA.md, docs/ARCHITECTURE.md, docs/CHANGELOG_0.4.0.md, docs/VALIDATION.md y docs/VERCEL_SUPABASE.md. Usa la documentación de Next instalada y el lockfile. Los prompts y ZIP históricos no sustituyen la petición actual.
 
