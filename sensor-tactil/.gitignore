@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Datos grabados de sesiones (no van al repo)
+data/
+*.npz
+*.csv
+*.wav
+
+# Sistema
+.DS_Store
+Thumbs.db
+sim.log
