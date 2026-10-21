@@ -42,7 +42,6 @@ import {
   dependencyConflicts,
 } from "@/lib/control";
 import { byCode } from "@/lib/codes";
-import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
 import {
   impactLabels,
   probabilityLabels,
@@ -76,7 +75,7 @@ export const phaseTitles: Record<PhaseView, string> = {
   interfaces: "Entregas entre equipos",
   weekly: "Reunión semanal",
   imports: "Importar Excel",
-  storage: "OneDrive y archivos",
+  storage: "OneDrive y enlaces",
   planning: "Cronograma y planificación",
   budget: "Presupuesto y gastos",
   changes: "Solicitudes de cambio",
@@ -93,7 +92,7 @@ export const phaseDescriptions: Record<PhaseView, string> = {
   interfaces: "Coordina entregas, evidencia y recepción entre equipos.",
   weekly: "Compromisos, bloqueos y decisiones de los próximos siete días.",
   imports: "Lleva tus hojas de Excel a las tablas del proyecto.",
-  storage: "Documentos y evidencias en tu OneDrive institucional.",
+  storage: "Documentos en OneDrive, solo enlaces en MecaPlan.",
   planning: "Fechas, dependencias y carga para coordinar el siguiente avance.",
   budget: "Planifica los costos y revisa cada gasto del equipo.",
   changes: "Acuerdos claros antes de ajustar el proyecto.",
@@ -552,7 +551,7 @@ export function PhasePanel(props: Props) {
         />
       )}{" "}
       {view === "imports" && <ImportPanel project={p} refresh={refresh} />}{" "}
-      {view === "storage" && (
+      {(view === "storage" || view === "files") && (
         <StoragePanel project={p} user={user} refresh={refresh} action={run} />
       )}{" "}
       {error && !dialog && (
@@ -1378,47 +1377,6 @@ export function PhasePanel(props: Props) {
           </section>
         </>
       )}
-      {view === "files" && (
-        <section className="panel">
-          <div className="section-heading">
-            <h2>Archivos del proyecto</h2>
-            <button className="primary" onClick={() => startDialog("upload")}>
-              <Upload size={16} />
-              Adjuntar archivo
-            </button>
-          </div>
-          <p className="form-note">
-            Los archivos nuevos se guardan en OneDrive. Para asociar enlaces y
-            migrar los anteriores, abre OneDrive y archivos. Formatos:{" "}
-            {uploadTypesLabel}. Consulta el límite actual en OneDrive y
-            archivos; también puedes asociar enlaces de documentos mayores.
-          </p>
-          {!c.files.length ? (
-            <Empty>Añade comprobantes, evidencias y documentos.</Empty>
-          ) : (
-            c.files.map((f) => (
-              <article className="phase-entry" key={f.id}>
-                <FileText size={24} />
-                <div>
-                  <h3>{f.name}</h3>
-                  <small>
-                    {(f.size / 1024).toFixed(1)} KB · {person(f.uploadedBy)} ·{" "}
-                    {shortDate(f.date.slice(0, 10))}
-                    {f.activityId
-                      ? " · " +
-                        p.activities.find((a) => a.id === f.activityId)?.code
-                      : ""}
-                  </small>
-                </div>
-                <a className="secondary" href={"/api/files/" + f.id}>
-                  <Download size={15} />
-                  Descargar
-                </a>
-              </article>
-            ))
-          )}
-        </section>
-      )}
       {view === "matrix" && (
         <>
           <section className="panel">
@@ -1905,7 +1863,6 @@ export function PhasePanel(props: Props) {
                 clone: "Clonar proyecto",
                 template: "Proyecto mecatrónico estándar",
                 repository: "Repositorio del equipo",
-                upload: "Adjuntar archivo",
                 restore: "Restaurar respaldo",
                 toTask: "Convertir acuerdo en actividad",
               } as Record<string, string>
@@ -1913,22 +1870,13 @@ export function PhasePanel(props: Props) {
           }
           close={() => setDialog(null)}
         >
-          {["upload", "restore", "toTask"].includes(dialog.kind) ? (
+          {["restore", "toTask"].includes(dialog.kind) ? (
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 const f = new FormData(e.currentTarget);
                 try {
-                  if (dialog.kind === "upload") {
-                    f.set("projectId", p.id);
-                    const r = await fetch("/api/files", {
-                      method: "POST",
-                      body: f,
-                    });
-                    const data = await r.json();
-                    if (!r.ok) throw Error(data.error);
-                    await refresh();
-                  } else if (dialog.kind === "restore") {
+                  if (dialog.kind === "restore") {
                     const file = f.get("file");
                     if (!(file instanceof File))
                       throw Error("Selecciona un respaldo JSON.");
@@ -1967,24 +1915,10 @@ export function PhasePanel(props: Props) {
                 </>
               ) : (
                 <>
-                  {field(
-                    "file",
-                    dialog.kind === "upload" ? "Archivo" : "Respaldo JSON",
-                    "",
-                    "file",
-                  )}
-                  {dialog.kind === "upload" &&
-                    select(
-                      "activityId",
-                      "Actividad (opcional)",
-                      tasks,
-                      "",
-                      false,
-                    )}
+                  {field("file", "Respaldo JSON", "", "file")}
                   <p className="form-note">
-                    {dialog.kind === "restore"
-                      ? "Se valida el contenido y se crea un proyecto nuevo. Las evaluaciones privadas no se importan."
-                      : "El archivo se guardará en el proyecto actual con acceso controlado."}
+                    Se valida el contenido y se crea un proyecto nuevo. Las
+                    evaluaciones privadas no se importan.
                   </p>
                 </>
               )}

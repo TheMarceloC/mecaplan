@@ -5,6 +5,7 @@ import "./unitec.css";
 import "./phase1b.css";
 import "./stabilization.css";
 import "./mejoras.css";
+import "./project-account.css";
 export const metadata: Metadata = {
   title: "MecaPlan · Cada pieza, en su lugar",
   description:

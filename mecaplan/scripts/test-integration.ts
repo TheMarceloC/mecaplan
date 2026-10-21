@@ -150,6 +150,35 @@ async function main() {
       oldPassword: password,
       password: password + "new",
     });
+    const previousCookie = cookies[3];
+    const profile = {
+      name: "Usuario sin proyecto",
+      email: ids[3] + ".updated@example.invalid",
+      username: ids[3] + "-updated",
+      currentPassword: password,
+    };
+    await api(
+      3,
+      "updateProfile",
+      { ...profile, globalRole: "superuser" },
+      false,
+    );
+    await api(
+      3,
+      "updateProfile",
+      { ...profile, currentPassword: "incorrecta" },
+      false,
+    );
+    await api(3, "updateProfile", profile);
+    const own = await (await get(3, "/api/app")).json();
+    assert.equal(own.user.name, profile.name);
+    assert.equal(own.user.globalRole, "user");
+    assert.deepEqual(own.projects, []);
+    const expired = await (
+      await fetch(base + "/api/app", { headers: { cookie: previousCookie } })
+    ).json();
+    assert.equal(expired.user, null);
+    checks += 4;
     await api(0, "saveBudgetItem", {
       id: "part",
       teamId: "a",
@@ -267,6 +296,17 @@ async function main() {
     project = data.projects.find((x: { id: string }) => x.id === tag);
     const fid = project.control.files[0].id;
     createdFiles.push(fid);
+    const directForm = new FormData();
+    directForm.set("projectId", tag);
+    directForm.set("file", new Blob(["synthetic document"]), "prueba.txt");
+    const direct = await fetch(base + "/api/files", {
+      method: "POST",
+      headers: { origin: base, cookie: cookies[0] },
+      body: directForm,
+    });
+    assert.equal(direct.status, 415);
+    assert.match((await direct.json()).error, /enlaces/);
+    checks += 2;
     await get(2, "/api/files/" + fid, 302);
     await get(3, "/api/files/" + fid, 404);
     const backup = await (
@@ -448,6 +488,20 @@ async function main() {
     await get(0, "/api/files/" + fid, 404);
     const storage = await (await get(0, "/api/onedrive")).json();
     assert.equal(typeof storage.connected, "boolean");
+    assert.equal(storage.mode, "links");
+    for (const action of ["connect", "migrate"]) {
+      const disabled = await fetch(base + "/api/onedrive", {
+        method: "POST",
+        headers: {
+          origin: base,
+          cookie: cookies[0],
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ action, projectId: tag, fileId: fid }),
+      });
+      assert.equal(disabled.status, 409);
+      checks++;
+    }
     checks++;
     const forbiddenDrive = await fetch(base + "/api/onedrive", {
       method: "POST",

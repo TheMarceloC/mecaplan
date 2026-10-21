@@ -29,6 +29,8 @@ import { withDistributedLock } from "../src/server/distributed-lock";
 import { demoEnabled } from "../src/server/demo-mode";
 import { db, sessions } from "../src/server/repositories/database";
 import { eq } from "drizzle-orm";
+import { hash } from "bcryptjs";
+import { updateOwnProfile } from "../src/server/account-service";
 let pg: PGlite, driver: SqlDriver, migration: string;
 function adapter(target: any): SqlDriver {
   return {
@@ -131,6 +133,48 @@ afterAll(async () => {
   vi.unstubAllEnvs();
   await pg.close();
 });
+it("el cambio de perfil y sus membresías se confirman juntos o revierten en PostgreSQL", () =>
+  inPg(async () => {
+    const password = "synthetic-postgres-account-password";
+    await saveUser({
+      ...user,
+      mustChangePassword: false,
+      passwordHash: await hash(password, 4),
+    });
+    await saveProject(fixture());
+    await pg.exec(
+      "CREATE FUNCTION fail_profile_project() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic rollback'; END $$; CREATE TRIGGER fail_profile_project BEFORE UPDATE ON projects FOR EACH ROW EXECUTE FUNCTION fail_profile_project()",
+    );
+    const input = {
+      name: "Nombre nuevo",
+      email: "new@example.invalid",
+      username: "nuevo.usuario",
+      currentPassword: password,
+    };
+    try {
+      await expect(updateOwnProfile(user.id, input)).rejects.toThrow(
+        /synthetic rollback/,
+      );
+      expect(await userById(user.id)).toMatchObject({
+        name: user.name,
+        email: user.email,
+      });
+      expect((await allProjects())[0].members[0].name).toBe("Estudiante");
+    } finally {
+      await pg.exec(
+        "DROP TRIGGER fail_profile_project ON projects; DROP FUNCTION fail_profile_project()",
+      );
+    }
+    expect(await updateOwnProfile(user.id, input)).toEqual({
+      identityChanged: true,
+    });
+    expect(await findUser("nuevo.usuario")).toMatchObject({
+      name: "Nombre nuevo",
+      email: "new@example.invalid",
+      globalRole: "superuser",
+    });
+    expect((await allProjects())[0].members[0].name).toBe("Nombre nuevo");
+  }));
 it("el esquema PostgreSQL se aplica de forma aditiva e idempotente y protege sus tablas", async () => {
   await pg.exec(migration);
   const r = await pg.query<{ relrowsecurity: boolean }>(
@@ -190,13 +234,11 @@ it("la transacción revierte todas las filas si falla una escritura", () =>
   }));
 it("las sesiones conservan sus campos y se pueden revocar en PostgreSQL", () =>
   inPg(async () => {
-    await db
-      .insert(sessions)
-      .values({
-        id: "session-hash",
-        userId: "u",
-        expiresAt: "2026-10-27T00:00:00.000Z",
-      });
+    await db.insert(sessions).values({
+      id: "session-hash",
+      userId: "u",
+      expiresAt: "2026-10-27T00:00:00.000Z",
+    });
     expect(
       (
         await db.select().from(sessions).where(eq(sessions.id, "session-hash"))

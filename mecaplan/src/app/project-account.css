@@ -1,0 +1,340 @@
+/* Project portfolio, dashboards and personal account. */
+.portfolio-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  padding: 30px 34px;
+  border-radius: 18px;
+  color: #fff;
+  background: #05065c;
+  margin-bottom: 22px;
+}
+.portfolio-hero .eyebrow {
+  color: #9de7f5;
+}
+.portfolio-hero h2 {
+  color: #fff;
+  font-size: clamp(22px, 2.4vw, 32px);
+  margin: 12px 0;
+  letter-spacing: -1px;
+}
+.portfolio-hero p {
+  color: #dbe7ff;
+  margin: 0;
+}
+.portfolio-progress {
+  display: grid;
+  text-align: right;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.portfolio-progress strong {
+  font-size: 45px;
+  line-height: 1;
+}
+.portfolio-progress span {
+  font-size: 12px;
+  color: #dbe7ff;
+}
+.portfolio-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.portfolio-metric {
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  min-width: 0;
+}
+.portfolio-metric > span {
+  font-size: 12px;
+  color: #606b80;
+}
+.portfolio-metric > strong {
+  font-size: clamp(20px, 2vw, 30px);
+  letter-spacing: -0.8px;
+  overflow-wrap: anywhere;
+}
+.portfolio-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 28px 0 20px;
+}
+.portfolio-toolbar > label {
+  margin: 0;
+}
+.portfolio-toolbar select {
+  min-width: 170px;
+}
+.portfolio-search {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 220px;
+}
+.portfolio-search input {
+  margin: 0;
+}
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+.portfolio-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 26px;
+}
+.portfolio-icon {
+  display: inline-flex;
+  padding: 12px;
+  background: #e2f7fe;
+  color: #0f49b6;
+  border-radius: 13px;
+}
+.portfolio-card h2 {
+  margin: 18px 0 8px;
+  line-height: 1.3;
+}
+.project-card-title {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.project-card-title:hover {
+  text-decoration: underline;
+}
+.project-card-description {
+  color: #606b80;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0 0 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.portfolio-card-progress {
+  margin-top: auto;
+  display: grid;
+  gap: 9px;
+  font-size: 12px;
+}
+.portfolio-card-progress > span {
+  display: flex;
+  justify-content: space-between;
+}
+.portfolio-card progress,
+.dashboard-state progress {
+  appearance: none;
+  width: 100%;
+  height: 7px;
+  border: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e9edf5;
+  accent-color: #03aed2;
+}
+.portfolio-card progress::-webkit-progress-bar,
+.dashboard-state progress::-webkit-progress-bar {
+  background: #e9edf5;
+  border-radius: 8px;
+}
+.portfolio-card progress::-webkit-progress-value,
+.dashboard-state progress::-webkit-progress-value {
+  background: #03aed2;
+  border-radius: 8px;
+}
+.portfolio-card progress::-moz-progress-bar,
+.dashboard-state progress::-moz-progress-bar {
+  background: #03aed2;
+}
+.portfolio-card-progress small {
+  color: #606b80;
+}
+.portfolio-card-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  margin: 18px 0;
+}
+.portfolio-card-flags span {
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: #f0f4fb;
+  color: #465471;
+}
+.portfolio-card footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid #e1e6f0;
+}
+.portfolio-card footer > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #606b80;
+}
+.portfolio-card footer button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.dashboard-detail-grid,
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.project-dashboard-details {
+  margin-bottom: 24px;
+}
+.dashboard-detail-grid .panel,
+.account-grid .panel {
+  padding: 25px;
+}
+.dashboard-detail-grid h2,
+.account-grid h2 {
+  font-size: 17px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.dashboard-state {
+  display: grid;
+  grid-template-columns: 100px 1fr 25px;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  font-size: 12px;
+}
+.dashboard-state strong {
+  text-align: right;
+}
+.dashboard-shortcuts {
+  display: grid;
+}
+.dashboard-shortcuts button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  font: inherit;
+  font-size: 13px;
+  color: #0f49b6;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #e1e6f0;
+  text-align: left;
+  cursor: pointer;
+}
+.dashboard-shortcuts button:hover {
+  color: #05065c;
+}
+.dashboard-shortcuts strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.account-grid form {
+  display: grid;
+  gap: 12px;
+}
+.account-grid label {
+  margin: 0;
+}
+.account-grid button {
+  justify-self: start;
+}
+.account-permissions {
+  display: flex;
+  gap: 10px;
+  padding-top: 20px;
+  margin-top: 24px;
+  border-top: 1px solid #e1e6f0;
+  font-size: 13px;
+}
+.account-permissions p {
+  color: #606b80;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.account-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  background: none;
+  color: #606b80;
+  cursor: pointer;
+  font-size: 12px;
+}
+.storage-steps {
+  padding-left: 22px;
+  line-height: 1.8;
+  font-size: 13px;
+  color: #53617a;
+}
+.storage-steps li {
+  padding-left: 4px;
+  margin: 7px 0;
+}
+@media (max-width: 1100px) {
+  .portfolio-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .portfolio-hero {
+    align-items: flex-start;
+    padding: 25px;
+    flex-direction: column;
+  }
+  .portfolio-progress {
+    text-align: left;
+  }
+  .account-grid,
+  .dashboard-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .portfolio-metric {
+    padding: 17px;
+  }
+  .portfolio-toolbar > label {
+    width: 100%;
+  }
+  .portfolio-search {
+    min-width: 0;
+  }
+  .portfolio-toolbar select {
+    width: 100%;
+  }
+  .portfolio-card {
+    padding: 22px;
+  }
+}

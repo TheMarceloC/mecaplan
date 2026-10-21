@@ -1,19 +1,12 @@
 "use client";
-import { useState, useEffect, type FormEvent } from "react";
-import { Cloud, Link2, Upload, ExternalLink, Check } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Cloud, Link2, ExternalLink, Check } from "lucide-react";
 import { type Project, type PublicUser } from "@/lib/model";
 import { control } from "@/lib/control";
 import { byCode } from "@/lib/codes";
-import { uploadAccept, uploadTypesLabel } from "@/lib/upload-types";
+import { oneDriveUrl } from "@/lib/onedrive-link";
 import { can } from "@/server/auth/permissions";
-import { useUploadLimits } from "./use-upload-limits";
-type Status = {
-  configured: boolean;
-  connected: boolean;
-  account: string;
-  redirectUri: string;
-  missing: string[];
-};
+
 export function StoragePanel({
   project: p,
   user,
@@ -25,100 +18,35 @@ export function StoragePanel({
   refresh: () => Promise<void>;
   action: (name: string, data?: unknown) => Promise<unknown>;
 }) {
-  const limits = useUploadLimits();
-  const [operationId, setOperationId] = useState(() => crypto.randomUUID());
-  const [state, setState] = useState<Status | null>(null),
-    [error, setError] = useState(""),
+  const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState("");
-  const admin = user.globalRole === "superuser",
-    c = control(p);
-  const activityOptions = p.activities
-    .filter((a) => !a.deletedAt)
-    .sort(byCode)
-    .map((a) => (
-      <option key={a.id} value={a.id}>
-        {a.code} · {a.title}
-      </option>
-    ));
-  async function load() {
-    const r = await fetch("/api/onedrive", { cache: "no-store" });
-    if (r.ok) setState(await r.json());
-  }
-  useEffect(() => {
-    load().catch(() => {});
-    setError("");
-    setNotice("");
-  }, [p.id]);
-  async function command(action: string, fileId?: string) {
-    setBusy(true);
-    setError("");
-    try {
-      const r = await fetch("/api/onedrive", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, projectId: p.id, fileId }),
-        }),
-        d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      if (d.url) {
-        window.location.assign(d.url);
-        return;
-      }
-      await load();
-      await refresh();
-      setNotice(
-        action === "migrate"
-          ? "Archivo verificado en OneDrive. Se conserva su referencia en las actividades."
-          : "Conexión actualizada.",
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo completar.");
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function save(e: FormEvent<HTMLFormElement>, upload = false) {
+  const c = control(p);
+  async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget,
-      f = new FormData(form);
-    const selectedFile = f.get("file");
-    if (
-      upload &&
-      selectedFile instanceof File &&
-      selectedFile.size > limits.documentBytes
-    ) {
-      setError(
-        `El archivo supera ${limits.documentBytes / 1024 / 1024} MB. Súbelo a OneDrive y asocia su enlace.`,
-      );
-      return;
-    }
-    f.set("projectId", p.id);
-    if (upload) f.set("operationId", operationId);
+      values = Object.fromEntries(new FormData(form));
     setBusy(true);
     setError("");
+    setNotice("");
     try {
+      values.url = oneDriveUrl(String(values.url));
       const r = await fetch("/api/files", {
-          method: "POST",
-          ...(upload
-            ? { body: f }
-            : {
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(Object.fromEntries(f)),
-              }),
-        }),
-        d = await r.json();
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, projectId: p.id }),
+      });
+      const d = await r.json();
       if (!r.ok) throw Error(d.error);
       form.reset();
-      if (upload) setOperationId(crypto.randomUUID());
       await refresh();
       setNotice(
-        upload
-          ? "Archivo guardado y verificado en OneDrive."
-          : "Enlace asociado al proyecto.",
+        "Enlace guardado. Abre el documento para comprobar el acceso en Microsoft.",
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo guardar.");
+      setError(
+        e instanceof Error ? e.message : "No se pudo guardar el enlace.",
+      );
     } finally {
       setBusy(false);
     }
@@ -133,91 +61,54 @@ export function StoragePanel({
               OneDrive institucional · UNITEC
             </h2>
             <p className="form-note">
-              Los documentos quedan en OneDrive. El proyecto guarda sus enlaces
-              y referencias.
+              Los documentos permanecen en OneDrive. MecaPlan guarda únicamente
+              sus enlaces y referencias.
             </p>
           </div>
-          <span
-            className={
-              "phase-status " + (state?.connected ? "approved" : "pending")
-            }
-          >
-            {state?.connected ? "Cuenta conectada" : "Sin conexión de subida"}
-          </span>
+          <span className="phase-status approved">Solo enlaces</span>
         </div>
-        {state?.connected ? (
-          <p className="form-note">
-            Cuenta: {state.account}. Las subidas se organizan en MecaPlan /
-            Proyecto.
-          </p>
-        ) : (
-          <p className="form-note">
-            Puedes asociar enlaces de OneDrive desde ahora. Para subir archivos
-            desde esta página, un administrador debe conectar la cuenta
-            institucional.
-          </p>
-        )}
-        {admin && (
-          <div className="phase-actions">
-            <button
-              className="primary"
-              disabled={busy || !state?.configured}
-              onClick={() => command("connect")}
-            >
-              <Cloud size={16} />
-              {state?.connected
-                ? "Reconectar cuenta"
-                : "Conectar Microsoft OneDrive"}
-            </button>
-            {state?.connected && (
-              <button
-                className="secondary"
-                disabled={busy}
-                onClick={() => command("disconnect")}
-              >
-                Desconectar cuenta
-              </button>
-            )}
-          </div>
-        )}
-        {admin && !state?.configured && (
-          <details className="import-details storage-setup">
-            <summary>Configuración necesaria para conectar Microsoft</summary>
-            <p>
-              Registra una aplicación Web en Microsoft Entra para la cuenta
-              institucional y configura sus valores privados en .env.local. La
-              universidad puede requerir autorización de TI.
-            </p>
-            <p>Variables pendientes: {state?.missing.join(", ")}.</p>
-            <p>
-              Usa el mismo origen para iniciar sesión aquí y para el URI de
-              retorno registrado. La guía del proyecto está en docs/ONEDRIVE.md.
-              No pegues secretos en formularios, chats ni repositorios.
-            </p>
-            <a href="/guia-onedrive.html" target="_blank" rel="noreferrer">
-              Abrir guía paso a paso de MecaPlan ↗
-            </a>
-          </details>
-        )}
-        {error && (
-          <p role="alert" className="form-error">
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p role="status" className="import-success">
-            <Check size={16} />
-            {notice}
-          </p>
-        )}
+        <ol className="storage-steps">
+          <li>Guarda el documento en la carpeta de OneDrive del proyecto.</li>
+          <li>
+            En Microsoft, usa <strong>Compartir → Copiar vínculo</strong> y
+            concede acceso a las personas que lo necesitan.
+          </li>
+          <li>
+            Pega el enlace aquí y abre el documento para comprobar sus permisos.
+          </li>
+        </ol>
+        <p className="form-note">
+          Esta página no recibe documentos adjuntos. La importación de Excel es
+          un proceso aparte: lee los datos de la plantilla para rellenar las
+          tablas.
+        </p>
+        <a
+          className="text-link"
+          href="/guia-onedrive.html"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Cómo compartir y comprobar los enlaces ↗
+        </a>
       </section>
-      <div className="storage-forms">
-        <section className="panel">
-          <h2>
-            <Link2 size={20} />
-            Asociar archivo de OneDrive
-          </h2>
-          <form onSubmit={(e) => save(e)}>
+      {error && (
+        <p role="alert" className="form-error">
+          {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="import-success">
+          <Check size={16} />
+          {notice}
+        </p>
+      )}
+      <section className="panel">
+        <h2>
+          <Link2 size={20} />
+          Asociar enlace de OneDrive
+        </h2>
+        <form onSubmit={save}>
+          <div className="form-grid">
             <label>
               Nombre del documento
               <input
@@ -234,152 +125,129 @@ export function StoragePanel({
                 name="url"
                 type="url"
                 required
+                maxLength={4096}
                 placeholder="https://…sharepoint.com/…"
               />
             </label>
-            <label>
-              Actividad relacionada
-              <select name="activityId">
-                <option value="">Documento del proyecto</option>
-                {activityOptions}
-              </select>
-            </label>
-            <button className="primary" disabled={busy}>
-              <Link2 size={15} />
-              Guardar enlace
-            </button>
-          </form>
-          <p className="form-note">
-            Se mantienen los permisos del documento en Microsoft. Compartir el
-            enlace aquí no concede acceso en OneDrive.
-          </p>
-        </section>
-        <section className="panel">
-          <h2>
-            <Upload size={20} />
-            Subir directamente a OneDrive
-          </h2>
-          {!state?.connected && (
-            <p className="form-note upload-blocked" role="note">
-              La subida se activa cuando un administrador conecte la cuenta
-              institucional. Mientras tanto, sube el archivo a OneDrive y asocia
-              su enlace en el formulario de al lado.
-            </p>
-          )}
-          <form onSubmit={(e) => save(e, true)}>
-            <fieldset className="plain-fieldset" disabled={!state?.connected}>
-              <label>
-                Archivo · hasta {limits.documentBytes / 1024 / 1024} MB
-                <input
-                  type="file"
-                  name="file"
-                  accept={uploadAccept}
-                  onChange={() => setOperationId(crypto.randomUUID())}
-                  required
-                />
-              </label>
-              <label>
-                Actividad relacionada
-                <select name="activityId">
-                  <option value="">Documento del proyecto</option>
-                  {activityOptions}
-                </select>
-              </label>
-              <button className="primary" disabled={busy}>
-                <Upload size={15} />
-                Subir a OneDrive
-              </button>
-            </fieldset>
-          </form>
-          <p className="form-note">
-            {uploadTypesLabel}. El archivo se transfiere a OneDrive y se
-            verifica; no se guarda como adjunto local nuevo.
-          </p>
-        </section>
-      </div>
+          </div>
+          <label>
+            Actividad relacionada
+            <select name="activityId">
+              <option value="">Documento del proyecto</option>
+              {p.activities
+                .filter((a) => !a.deletedAt)
+                .sort(byCode)
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.code} · {a.title}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <button className="primary" disabled={busy}>
+            <Link2 size={15} />
+            Guardar enlace
+          </button>
+        </form>
+        <p className="form-note">
+          Se aceptan enlaces HTTPS de OneDrive y SharePoint. Guardar el enlace
+          aquí no modifica sus permisos en Microsoft.
+        </p>
+      </section>
       <section className="panel">
         <h2>Documentos del proyecto</h2>
         {!c.files.length ? (
-          <p className="form-note">Todavía no hay documentos asociados.</p>
+          <p className="form-note">
+            Todavía no hay enlaces asociados. Agrega actas, bitácoras,
+            comprobantes y evidencias desde el formulario.
+          </p>
         ) : (
-          c.files.map((f) => (
-            <article className="phase-entry" key={f.id}>
-              <div>
-                <span
-                  className={
-                    "phase-status " +
-                    (f.provider === "onedrive" ? "approved" : "pending")
-                  }
-                >
-                  {f.provider === "onedrive"
-                    ? "Enlace OneDrive"
-                    : "Archivo local anterior"}
-                </span>
-                <h3>{f.name}</h3>
-                <small>
-                  {f.activityId
-                    ? p.activities.find((a) => a.id === f.activityId)?.code
-                    : "Proyecto completo"}
-                  {f.size ? " · " + (f.size / 1024).toFixed(1) + " KB" : ""}
-                </small>
-              </div>
-              <a
-                className="secondary"
-                target="_blank"
-                rel="noreferrer"
-                href={"/api/files/" + f.id}
-              >
-                <ExternalLink size={15} />
-                Abrir
-              </a>
-              {f.provider === "onedrive" &&
-                (f.uploadedBy === user.id || can(user, "project:edit", p)) && (
-                  <button
-                    className="secondary danger"
-                    disabled={busy}
-                    onClick={async () => {
-                      if (
-                        !window.confirm(
-                          "¿Retirar este enlace del proyecto? El archivo se conserva en OneDrive.",
-                        )
-                      )
-                        return;
-                      setBusy(true);
-                      try {
-                        await action("removeFileLink", { id: f.id });
-                        setNotice(
-                          "Enlace retirado. El archivo se conserva en OneDrive.",
-                        );
-                      } catch (e) {
-                        setError(
-                          e instanceof Error
-                            ? e.message
-                            : "No se pudo retirar el enlace.",
-                        );
-                      } finally {
-                        setBusy(false);
-                      }
-                    }}
+          c.files.map((f) => {
+            let valid = false;
+            try {
+              valid = f.provider === "onedrive" && !!oneDriveUrl(f.url ?? "");
+            } catch {}
+            return (
+              <article className="phase-entry" key={f.id}>
+                <div>
+                  <span
+                    className={
+                      "phase-status " + (valid ? "approved" : "pending")
+                    }
                   >
-                    Retirar enlace
-                  </button>
+                    {valid
+                      ? "Formato de enlace válido"
+                      : f.provider === "onedrive"
+                        ? "Revisar enlace"
+                        : "Archivo anterior"}
+                  </span>
+                  <h3>{f.name}</h3>
+                  <small>
+                    {f.activityId
+                      ? p.activities.find((a) => a.id === f.activityId)?.code
+                      : "Proyecto completo"}
+                  </small>
+                  <p className="form-note">
+                    {valid
+                      ? "Microsoft comprueba el acceso al abrirlo. Puede solicitar tu cuenta institucional."
+                      : "Conserva el documento en OneDrive y asocia un enlace válido."}
+                  </p>
+                </div>
+                {(valid || f.provider !== "onedrive") && (
+                  <a
+                    className="secondary"
+                    target="_blank"
+                    rel="noreferrer"
+                    href={"/api/files/" + encodeURIComponent(f.id)}
+                  >
+                    <ExternalLink size={15} />
+                    {valid
+                      ? "Abrir y comprobar acceso"
+                      : "Abrir archivo anterior"}
+                  </a>
                 )}
-              {f.provider !== "onedrive" && admin && (
-                <button
-                  className="secondary"
-                  disabled={busy || !state?.connected}
-                  onClick={() => command("migrate", f.id)}
-                >
-                  Migrar a OneDrive
-                </button>
-              )}
-            </article>
-          ))
+                {f.provider === "onedrive" &&
+                  (f.uploadedBy === user.id ||
+                    can(user, "project:edit", p)) && (
+                    <button
+                      className="secondary danger"
+                      disabled={busy}
+                      onClick={async () => {
+                        if (
+                          !window.confirm(
+                            "¿Retirar este enlace del proyecto? El documento se conserva en OneDrive.",
+                          )
+                        )
+                          return;
+                        setBusy(true);
+                        setError("");
+                        setNotice("");
+                        try {
+                          await action("removeFileLink", { id: f.id });
+                          setNotice(
+                            "Enlace retirado. El documento se conserva en OneDrive.",
+                          );
+                        } catch (e) {
+                          setError(
+                            e instanceof Error
+                              ? e.message
+                              : "No se pudo retirar el enlace.",
+                          );
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      Retirar enlace
+                    </button>
+                  )}
+              </article>
+            );
+          })
         )}
         <p className="form-note">
-          Eliminar el proyecto no elimina estos documentos de OneDrive. Los
-          archivos locales anteriores se migran de forma explícita cuando la
-          cuenta esté conectada.
+          Retirar un enlace o eliminar el proyecto conserva los documentos en
+          OneDrive.
         </p>
       </section>
     </div>

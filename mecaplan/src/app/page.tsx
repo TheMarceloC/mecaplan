@@ -2,6 +2,11 @@
 import { Dialog as Modal } from "@/components/dialog";
 import { DailyFocus } from "@/components/daily-focus";
 import { SecurityHistory } from "@/components/security-history";
+import { AccountSettings } from "@/components/account-settings";
+import {
+  PortfolioDashboard,
+  ProjectDashboardDetails,
+} from "@/components/project-dashboard";
 import { leafActivities } from "@/lib/model";
 import { TeamManager, ProjectDeletion } from "@/components/project-tools";
 import {
@@ -89,6 +94,8 @@ type Payload = {
   users: PublicUser[];
 };
 type View =
+  | "portfolio"
+  | "account"
   | "overview"
   | "tasks"
   | "activities"
@@ -176,7 +183,7 @@ export default function App() {
   const [payload, setPayload] = useState<Payload | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [view, setView] = useState<View>("overview"),
+    [view, setView] = useState<View>("portfolio"),
     [projectId, setProjectId] = useState(""),
     [toast, setToast] = useState(""),
     // Acción opcional del aviso; solo se muestra mientras el aviso tenga ese mismo texto.
@@ -220,16 +227,10 @@ export default function App() {
     if (!r.ok) throw Error("No se pudo cargar el proyecto.");
     const d: Payload = await r.json();
     setPayload(d);
+    if (!d.user) initialUser.current = "";
     if (d.user && initialUser.current !== d.user.id) {
       initialUser.current = d.user.id;
-      if (
-        d.user.id !== "demo" &&
-        d.user.globalRole !== "superuser" &&
-        !d.projects.some((p) =>
-          p.members.some((m) => m.id === d.user!.id && m.role === "admin"),
-        )
-      )
-        setView("tasks");
+      setView("portfolio");
     }
     setProjectId((old) =>
       d.projects.some((p) => p.id === old)
@@ -760,7 +761,7 @@ export default function App() {
     : 1;
   const filtered = Object.values(filter).some(Boolean);
   const nav: [View, string, typeof LayoutDashboard][] = [
-    ["overview", "Vista general", LayoutDashboard],
+    ["overview", "Dashboard del proyecto", LayoutDashboard],
     ["tasks", "Mis tareas", CheckCircle2],
     ["activities", "Actividades", List],
     ["kanban", "Tablero Kanban", FolderKanban],
@@ -792,7 +793,7 @@ export default function App() {
             value={projectId}
             onChange={(e) => {
               setProjectId(e.target.value);
-              setFilter(empty);
+              go("overview");
             }}
           >
             {payload.projects.map((p) => (
@@ -804,6 +805,15 @@ export default function App() {
           <ChevronDown size={13} />
         </label>
         <div className="sidebar-rule" />
+        <nav aria-label="Navegación general">
+          <button
+            className={view === "portfolio" ? "active" : ""}
+            onClick={() => go("portfolio")}
+          >
+            <Grid2X2 size={19} />
+            Todos los proyectos
+          </button>
+        </nav>
         <span className="nav-label">PROYECTO</span>
         <nav>
           {nav.map(([key, label, Icon]) => (
@@ -898,8 +908,9 @@ export default function App() {
           )}
           <button
             className="user-profile"
-            onClick={() => action("logout").catch(() => {})}
-            title="Cerrar sesión"
+            onClick={() => go("account")}
+            title="Mi cuenta"
+            aria-label="Mi cuenta"
           >
             <Avatar name={user.name} />
             <span>
@@ -914,7 +925,14 @@ export default function App() {
                       : "Miembro del equipo"}
               </small>
             </span>
-            <LogOut size={16} />
+            <Settings2 size={16} />
+          </button>
+          <button
+            className="account-logout"
+            onClick={() => action("logout").catch(() => {})}
+          >
+            <LogOut size={15} />
+            Cerrar sesión
           </button>
         </div>
       </aside>
@@ -935,9 +953,17 @@ export default function App() {
             <Menu />
           </button>
           <div className="breadcrumb">
-            <span>Mis proyectos</span>
+            <button className="text-btn" onClick={() => go("portfolio")}>
+              Todos los proyectos
+            </button>
             <ChevronRight size={14} />
-            <strong>{project?.name ?? "Proyectos"}</strong>
+            <strong>
+              {view === "account"
+                ? "Mi cuenta"
+                : view === "portfolio"
+                  ? "Dashboard general"
+                  : (project?.name ?? "Proyectos")}
+            </strong>
           </div>
           <div className="topbar-right">
             <span className="local-label">
@@ -966,7 +992,24 @@ export default function App() {
           </div>
         </header>
         <main className="content">
-          {!project ? (
+          {view === "portfolio" ? (
+            <PortfolioDashboard
+              projects={payload.projects}
+              user={user}
+              create={() => setModal("project")}
+              open={(id) => {
+                setProjectId(id);
+                go("overview");
+              }}
+            />
+          ) : view === "account" ? (
+            <AccountSettings
+              key={user.id}
+              user={user}
+              action={action}
+              busy={busy}
+            />
+          ) : !project ? (
             <div className="empty-state">
               <FolderKanban size={40} />
               <h1>Tu próximo proyecto empieza aquí.</h1>
@@ -1000,7 +1043,9 @@ export default function App() {
                   <h1>
                     {
                       {
-                        overview: "Vista general",
+                        portfolio: "Todos los proyectos",
+                        account: "Mi cuenta",
+                        overview: "Dashboard del proyecto",
                         tasks: "Mis tareas",
                         activities: "Actividades",
                         kanban: "Tablero Kanban",
@@ -1075,6 +1120,7 @@ export default function App() {
               {view === "overview" && (
                 <>
                   <ControlSummary project={project} />
+                  <ProjectDashboardDetails project={project} navigate={go} />
                   <section className="project-banner">
                     <div className="project-symbol">
                       <Box size={29} />

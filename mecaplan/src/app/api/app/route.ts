@@ -37,6 +37,7 @@ import {
 import { today } from "@/lib/model";
 import { withWriteLock } from "@/server/write-lock";
 import { jsonRequestBytes } from "@/server/upload-limits";
+import { changeOwnPassword, updateOwnProfile } from "@/server/account-service";
 export const runtime = "nodejs";
 let seeded: Promise<void> | undefined;
 const ready = () => (seeded ??= demoEnabled() ? seedDemo() : Promise.resolve());
@@ -226,24 +227,8 @@ async function mutate(req: NextRequest) {
         { status: 401 },
       );
     if (action === "changePassword") {
-      const d = z
-          .object({
-            oldPassword: z.string().min(1).max(128),
-            password: z.string().min(12).max(128),
-          })
-          .parse(data),
-        u = await userById(actor.id);
-      if (!u || !(await compare(d.oldPassword, u.passwordHash)))
-        throw Error("La contraseña actual no es correcta.");
-      if (d.password === d.oldPassword)
-        throw Error("Elige una contraseña diferente de la inicial.");
-      await saveUser({
-        ...u,
-        passwordHash: await hash(d.password, 12),
-        mustChangePassword: false,
-      });
-      await sql.prepare("DELETE FROM sessions WHERE user_id=?").run(u.id);
-      await signIn(u.id);
+      await changeOwnPassword(actor.id, data);
+      await signIn(actor.id);
       return NextResponse.json({ ok: true });
     }
     if (actor.mustChangePassword)
@@ -253,6 +238,11 @@ async function mutate(req: NextRequest) {
         { error: "Tu cuenta está pendiente de activación." },
         { status: 403 },
       );
+    if (action === "updateProfile") {
+      const result = await updateOwnProfile(actor.id, data);
+      if (result.identityChanged) await signIn(actor.id);
+      return NextResponse.json({ ok: true });
+    }
     if (await mutateGlobal(action, data, actor))
       return NextResponse.json({ ok: true });
     if (action === "resetPassword") {

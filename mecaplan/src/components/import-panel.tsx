@@ -122,6 +122,20 @@ export function ImportPanel({
             <span key={s.key}>{s.name}</span>
           ))}
         </div>
+        <ol className="storage-steps">
+          <li>
+            Descarga la plantilla y completa las hojas que necesites,
+            conservando sus encabezados.
+          </li>
+          <li>
+            Selecciona el XLSX y revisa las filas nuevas, los cambios y los
+            errores.
+          </li>
+          <li>
+            Confirma la importación para rellenar las tablas del proyecto
+            seleccionado.
+          </li>
+        </ol>
         <form onSubmit={inspect} className="import-upload">
           <label>
             Archivo XLSX · hasta {limits.importBytes / 1024 / 1024} MB
@@ -168,8 +182,9 @@ export function ImportPanel({
           se aceptan si no cambian. Las revisiones se validan.
         </p>
         <p className="form-note">
-          El archivo se procesa para leer sus datos. Para conservar el original
-          en OneDrive, súbelo o asocia su enlace desde OneDrive y archivos.
+          El XLSX solo se procesa para importar datos a las tablas; no se guarda
+          como documento. Para conservar el original, guárdalo en OneDrive y
+          registra su enlace en OneDrive y enlaces.
         </p>
         {error && (
           <p className="form-error" role="alert">

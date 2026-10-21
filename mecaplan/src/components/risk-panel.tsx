@@ -39,7 +39,11 @@ export function RiskPanel({
   return (
     <>
       <div className="phase-toolbar">
-        <p>Selecciona una casilla para ver los riesgos que contiene.</p>
+        <p>
+          Selecciona una casilla para ver sus riesgos. Usa Editar en la ficha
+          para actualizar los que tienes asignados; los administradores pueden
+          editar todos.
+        </p>
         <button className="primary" onClick={onCreate}>
           <Plus size={16} />
           Registrar riesgo
@@ -184,7 +188,16 @@ export function RiskPanel({
                     </small>
                   </div>
                   {(can(user, "project:edit", p) || r.ownerId === user.id) && (
-                    <button className="secondary" onClick={() => onEdit(r)}>
+                    <button
+                      className="secondary"
+                      aria-label={
+                        "Editar riesgo " +
+                        (r.code ?? "") +
+                        " · " +
+                        r.description
+                      }
+                      onClick={() => onEdit(r)}
+                    >
                       Editar
                     </button>
                   )}
