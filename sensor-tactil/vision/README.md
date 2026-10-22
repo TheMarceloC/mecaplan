@@ -17,6 +17,8 @@ se hunde y cada LED la ilumina distinto, produciendo una "huella" de colores.
 | `materiales.py` | Cinco materiales simulados, cada uno con su huella: liso, rugoso, filo, tela, blando. |
 | `clasificador.py` | Genera un dataset, saca rasgos de cada huella y entrena un modelo para reconocer el material. |
 | `demo_clasificador.py` | Demo en vivo: toca materiales al azar y muestra el real vs. el predicho. |
+| `rasgos_audio.py` | Saca rasgos del sonido de un toque (energía, agudeza, graves/agudos…). |
+| `clasificador_fusion.py` | Clasifica por imagen, por audio y por los dos juntos (fusión), y compara. |
 
 ## Cómo probarlo (sin hardware)
 
@@ -55,6 +57,30 @@ python demo_clasificador.py
 
 Cada ~2 s toca un material al azar y muestra el real vs. el predicho (verde si
 acierta). Cerrar con **Q**.
+
+## Fusión: imagen + sonido (robustez)
+
+Cada material también **suena** distinto al tocarlo (el filo un "ping", el rugoso
+un chasquido, el liso un zumbido grave…). Se puede clasificar por imagen, por
+audio y por los dos juntos:
+
+```bash
+python clasificador_fusion.py --entrenar
+```
+
+Compara los tres según el ruido del micrófono. En las pruebas salió:
+
+| escenario | solo audio | fusión |
+|---|---:|---:|
+| micrófono limpio | 100 % | 100 % |
+| ambiente moderado | 78 % | 99.7 % |
+| taller ruidoso | 53 % | 99.7 % |
+
+(La imagen sola queda en ~99.7 %, no depende del micrófono.)
+
+**Lectura:** cuando el micrófono se ensucia, el audio solo se cae, pero la fusión
+se mantiene porque la imagen la sostiene. Esa robustez es la idea del Digit 360 /
+Sparsh-X: juntar modalidades para no depender de una sola.
 
 ## Qué se puede y qué no
 
