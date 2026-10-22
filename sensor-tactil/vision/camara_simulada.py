@@ -79,9 +79,12 @@ class GelSimulado:
         verdad = {"contacto": True, "centro": (cx, cy), "fuerza": fuerza}
         return 14.0 * fuerza * h, verdad
 
-    def imagen(self, t):
-        """Devuelve (imagen BGR uint8, verdad del contacto) para el instante t."""
-        h, verdad = self._hundimiento(t)
+    def render(self, h):
+        """Convierte un mapa de hundimiento `h` (o None) en imagen BGR uint8.
+
+        Es la iluminación del gel por los tres LEDs; la usan tanto el toque del
+        ciclo como los materiales (ver materiales.py).
+        """
         rgb = self.fondo.copy()
         if h is not None:
             gy, gx = np.gradient(h)
@@ -94,7 +97,12 @@ class GelSimulado:
                 )
         rgb += self.rng.normal(0, self.ruido, rgb.shape)
         bgr = np.clip(rgb, 0, 255).astype(np.uint8)[..., ::-1]
-        return np.ascontiguousarray(bgr), verdad
+        return np.ascontiguousarray(bgr)
+
+    def imagen(self, t):
+        """Devuelve (imagen BGR uint8, verdad del contacto) para el instante t."""
+        h, verdad = self._hundimiento(t)
+        return self.render(h), verdad
 
 
 class FuenteSimulada:

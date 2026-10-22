@@ -14,3 +14,6 @@ data/
 .DS_Store
 Thumbs.db
 sim.log
+
+# Modelo entrenado (se regenera con clasificador.py --entrenar)
+*.pkl
