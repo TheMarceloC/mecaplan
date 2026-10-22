@@ -26,9 +26,10 @@ import protocolo as proto
 
 
 class GrabadorSesion:
-    def __init__(self, carpeta_base="data/sesiones"):
-        nombre = time.strftime("%Y%m%d-%H%M%S")
-        self.ruta = os.path.join(carpeta_base, nombre)
+    def __init__(self, carpeta_base="data/sesiones", carpeta=None):
+        # `carpeta` fija la ruta exacta (p. ej. para compartirla con el video de
+        # una sesión integrada); si no, se crea una con la fecha y hora.
+        self.ruta = carpeta or os.path.join(carpeta_base, time.strftime("%Y%m%d-%H%M%S"))
         os.makedirs(self.ruta, exist_ok=True)
 
         self._fp_pres = open(
