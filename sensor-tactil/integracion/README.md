@@ -33,6 +33,19 @@ data/sesiones_integradas/AAAAmmdd-HHMMSS/
 Las cuatro modalidades cubren la misma duración; el toque (presión arriba,
 vibración, sonido y huella en la imagen) ocurre en el mismo instante en todas.
 
+## Reproducir una sesión
+
+Muestra el video de la yema arriba y las curvas de presión, aceleración y
+micrófono abajo, con un cursor que avanza sincronizado:
+
+```bash
+python reproductor.py                   # la última sesión grabada
+python reproductor.py --carpeta data/sesiones_integradas/<carpeta>
+```
+
+Cerrar con **Q**. Con `--guardar-frame 0.6` guarda un cuadro compuesto (video +
+curvas) en ese segundo, sin abrir ventana.
+
 ## Qué se puede y qué no
 
 - **Sirve para** desarrollar el registro multimodal y la demo integrada, y para
