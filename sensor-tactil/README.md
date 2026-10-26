@@ -9,6 +9,16 @@ Separa el software del hardware: un **simulador** hace de placa, así que todo e
 lado de la PC se puede construir y probar **sin tener ninguna placa**. Cuando
 llegue la ESP32 real, se cambia una sola línea y todo lo demás sirve igual.
 
+## Idea actual: domo con marcadores
+
+El proyecto se decidió por un **domo de silicona con marcadores** visto por una
+cámara USB (estilo TacTip). Su simulador, el seguimiento de marcadores y las
+pruebas de aceptación están en [`marcadores/`](marcadores/README.md).
+
+Las carpetas `vision/`, `integracion/` y `demo/` son del enfoque fotométrico
+(gel con luces de colores) que se exploró antes. De ahí sigue sirviendo la idea
+de la detección de contacto, la grabación, el reproductor y el tablero.
+
 ## Qué hay aquí
 
 | Archivo | Para qué |
