@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digit 360 | Sensores</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">DIGIT 360</p>
+        <h1>Monitor de sensores</h1>
+      </div>
+      <label>Origen de datos
+        <select id="origen">
+          <option value="simulado">Demo</option>
+          <option value="real">Hardware</option>
+        </select>
+      </label>
+    </header>
+
+    <section aria-labelledby="sensor">
+      <div class="summary">
+        <div>
+          <h2 id="sensor">Sensor táctil</h2>
+          <p id="fuente">Datos simulados</p>
+        </div>
+        <p id="estado" class="status" role="status">Conectando</p>
+      </div>
+      <dl>
+        <div><dt>Contacto</dt><dd id="contacto">—</dd></div>
+        <div><dt>Zona</dt><dd id="zona">—</dd></div>
+        <div><dt>Desplazamiento</dt><dd id="desplazamiento">—</dd></div>
+      </dl>
+      <p class="timestamp">Última lectura <time id="timestamp">—</time></p>
+    </section>
+  </main>
+</body>
+</html>
