@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es-HN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b111b">
+  <title>Digit 360 | Monitor de sensores</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="container masthead-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 17h16M6 15V13a6 6 0 0 1 12 0v2M9 13h.01m3-3h.01m3 3h.01" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <strong>Digit <span>360</span></strong>
+      </div>
+      <p class="course">MEC402 <span> / </span> Programación</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="intro">
+      <div>
+        <p class="eyebrow">Prototipo táctil</p>
+        <h1>Monitor de sensores</h1>
+        <p class="intro-copy">Lecturas del domo con marcadores.</p>
+      </div>
+      <label class="source-control" for="origen">
+        <span>Fuente de lecturas</span>
+        <select id="origen">
+          <option value="simulado">Demo</option>
+          <option value="real">Hardware</option>
+        </select>
+      </label>
+    </div>
+
+    <section class="instrument" aria-labelledby="sensor">
+      <div class="instrument-header">
+        <div>
+          <h2 id="sensor">Sensor táctil</h2>
+          <p id="fuente" class="source-label">Datos simulados</p>
+        </div>
+        <p id="estado" class="status" role="status" data-estado="conectando">Conectando</p>
+      </div>
+
+      <div class="instrument-grid">
+        <figure class="diagram">
+          <figcaption>
+            <span>Mapa de contacto</span>
+            <span class="diagram-note">Esquema</span>
+          </figcaption>
+          <svg id="mapa" class="map" viewBox="0 0 480 224" aria-hidden="true">
+            <defs>
+              <pattern id="reticula" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path d="M24 0H0V24" fill="none" stroke="#22354b" stroke-opacity=".46"/>
+              </pattern>
+              <pattern id="marcadores" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="12" cy="12" r="2.1" fill="#5d849d" fill-opacity=".64"/>
+              </pattern>
+              <clipPath id="domo">
+                <path d="M68 177C68 101 142 45 240 45s172 56 172 132Z"/>
+              </clipPath>
+            </defs>
+            <rect width="480" height="224" rx="10" fill="url(#reticula)"/>
+            <g clip-path="url(#domo)">
+              <rect x="68" y="44" width="344" height="134" fill="#10283a"/>
+              <rect class="map-zone" data-zone="izquierda" x="68" y="44" width="115" height="134"/>
+              <rect class="map-zone" data-zone="centro" x="183" y="44" width="114" height="134"/>
+              <rect class="map-zone" data-zone="derecha" x="297" y="44" width="115" height="134"/>
+              <rect x="68" y="44" width="344" height="134" fill="url(#marcadores)"/>
+              <path d="M183 44v133M297 44v133" stroke="#6a92a7" stroke-opacity=".66" stroke-dasharray="4 5"/>
+            </g>
+            <path d="M68 177C68 101 142 45 240 45s172 56 172 132Z" fill="none" stroke="#7bafc0" stroke-width="1.5"/>
+            <path d="M55 187h370" stroke="#334e65"/>
+            <g class="map-labels" text-anchor="middle">
+              <text x="125.5" y="208">IZQUIERDA</text>
+              <text x="240" y="208">CENTRO</text>
+              <text x="354.5" y="208">DERECHA</text>
+            </g>
+          </svg>
+        </figure>
+
+        <div class="reading-panel">
+          <h3>Lecturas actuales</h3>
+          <dl class="readings">
+            <div><dt>Contacto</dt><dd id="contacto">—</dd></div>
+            <div><dt>Zona</dt><dd id="zona">—</dd></div>
+            <div><dt>Desplazamiento</dt><dd id="desplazamiento">—</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="instrument-footer">
+        <p>Última lectura <time id="timestamp">—</time></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
